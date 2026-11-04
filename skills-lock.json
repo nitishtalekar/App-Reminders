@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "skills": {
+    "android-data-layer": {
+      "source": "rcosteira79/android-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/android-skills/skills/android-data-layer/SKILL.md",
+      "computedHash": "e2aa9a771ce4d04fbe49f2db3ce15bf75844b002e86e01808afe4ff0494a9cd2"
+    },
+    "android-debugging": {
+      "source": "rcosteira79/android-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/android-skills/skills/android-debugging/SKILL.md",
+      "computedHash": "5ecb0f0b69b2e20756ce0f939fb9ca11cb861b44da04cd942cb51f4a2ee07449"
+    },
+    "android-dev": {
+      "source": "rcosteira79/android-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/android-skills/skills/android-dev/SKILL.md",
+      "computedHash": "69413f6b82955888ebd9ba6dc6aafc53aee37b172151e521c584bf069451561b"
+    },
+    "android-testing": {
+      "source": "rcosteira79/android-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/android-skills/skills/android-testing/SKILL.md",
+      "computedHash": "cd8492af8b8ecd18dc563a2e3bd260300a17104d1cec8d67fa234755ab1403d2"
+    },
+    "android-ux": {
+      "source": "rcosteira79/android-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/android-skills/skills/android-ux/SKILL.md",
+      "computedHash": "7482503dcfefff52892efd7d3f52a12ede1246cb47789fc1cd4c411c37de3b7b"
+    },
+    "compose": {
+      "source": "rcosteira79/android-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/android-skills/skills/compose/SKILL.md",
+      "computedHash": "e2ac811cc30c72ce47d49f5168d99d4362e0f720b6a622f8b3bb36ac17de0108"
+    },
+    "datastore": {
+      "source": "rcosteira79/android-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/android-skills/skills/datastore/SKILL.md",
+      "computedHash": "13b777a49bc4a0e7bd8b2af3d42e6f3711ee542bcf1bd06b2c9e00c985b49e6e"
+    },
+    "impeccable": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/impeccable/SKILL.md",
+      "computedHash": "87f1b110ed29b2636378a46a330f80c4d88c7b2b4246a185ded58da5bbc87d94"
+    },
+    "kotlin-coroutines": {
+      "source": "rcosteira79/android-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/android-skills/skills/kotlin-coroutines/SKILL.md",
+      "computedHash": "528de4c860cdbc67dda89786fe7efd9b4e136352039d297ccfbc5f0e012e2158"
+    },
+    "kotlin-flows": {
+      "source": "rcosteira79/android-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/android-skills/skills/kotlin-flows/SKILL.md",
+      "computedHash": "f831c27b41584fccbd6498786b1d7de1034151b3e774b97d0757633f0b1b5f2d"
+    }
+  }
+}

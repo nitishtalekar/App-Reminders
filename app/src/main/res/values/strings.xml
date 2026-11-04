@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Kept</string>
+    <string name="widget_label">Kept rotating reminders</string>
+    <string name="widget_description">One reminder or birthday at a time, rotating automatically.</string>
+</resources>
