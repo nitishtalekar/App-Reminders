@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- "Dial": a timer ring with a progress arc, a birthday dot, and a reminder square at the centre. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
-    <path android:fillColor="#5EC8F2" android:pathData="M30,38a8,8 0 0 1 8,-8h14a8,8 0 0 1 8,8v14a8,8 0 0 1 -8,8h-14a8,8 0 0 1 -8,-8z" />
-    <path android:fillColor="#B8A2FF" android:pathData="M68,64m-11,0a11,11 0 1 1 22,0a11,11 0 1 1 -22,0" />
-    <path android:strokeColor="#3A4A66" android:strokeWidth="4" android:strokeLineCap="round" android:pathData="M32,74 A24,24 0 0 1 56,98" />
+    <path android:pathData="M78,54 A24,24 0 1 1 30,54 A24,24 0 1 1 78,54" android:strokeColor="#2A3A52" android:strokeWidth="6" />
+    <path android:pathData="M54,30 A24,24 0 0 1 78,54" android:strokeColor="#5EC8F2" android:strokeWidth="6" android:strokeLineCap="round" />
+    <path android:pathData="M78,54m-6.6,0a6.6,6.6 0 1 1 13.2,0a6.6,6.6 0 1 1 -13.2,0" android:fillColor="#B8A2FF" />
+    <path android:pathData="M51.2,46.5 h5.6 a5,5 0 0 1 5,5 v5 a5,5 0 0 1 -5,5 h-5.6 a5,5 0 0 1 -5,-5 v-5 a5,5 0 0 1 5,-5z" android:fillColor="#5EC8F2" />
 </vector>

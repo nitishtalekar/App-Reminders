@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kept - icon options</title>
+<style>
+  :root { --bg:#0A0E14; --text:#E8EEF6; --muted:#8FA0B8; --line:#243044; --cyan:#5EC8F2; --violet:#B8A2FF; }
+  body { margin:0; padding:40px; background:#06090d; color:var(--text); font-family: "Segoe UI", system-ui, sans-serif; }
+  h1 { font-size:26px; margin:0 0 6px; } p.sub { color:var(--muted); margin:0 0 36px; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap:28px; }
+  .card { background:#0d131c; border:1px solid var(--line); border-radius:22px; padding:24px; }
+  .card h2 { font-size:17px; margin:0 0 4px; } .card p { color:var(--muted); font-size:13.5px; line-height:1.45; margin:0 0 18px; min-height:58px; }
+  .row { display:flex; align-items:flex-end; gap:18px; }
+  .ic { width:112px; height:112px; } .ic.sm { width:56px; height:56px; } .ic.xs { width:40px; height:40px; }
+  .round svg, .sq svg { width:100%; height:100%; display:block; }
+  .round { border-radius:50%; overflow:hidden; } .sq { border-radius:28%; overflow:hidden; }
+  .lbl { font-size:11px; color:var(--muted); text-align:center; margin-top:6px; }
+  .wall { margin-top:18px; padding:14px; border-radius:16px; background:linear-gradient(135deg,#2b3a55,#0f1624); display:flex; gap:14px; align-items:center; }
+</style>
+</head>
+<body>
+<h1>Kept: app icon options</h1>
+<p class="sub">Each is shown as a round icon, a rounded-square icon, and at small home-screen sizes. Palette matches the app: slate navy, ice cyan (reminders), violet (birthdays).</p>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <!-- A: Pair -->
+    <symbol id="A" viewBox="0 0 108 108">
+      <rect width="108" height="108" fill="#0A0E14"/>
+      <rect x="26" y="28" width="38" height="38" rx="12" fill="#5EC8F2"/>
+      <circle cx="68" cy="68" r="19" fill="#B8A2FF"/>
+    </symbol>
+    <!-- B: Arcs -->
+    <symbol id="B" viewBox="0 0 108 108">
+      <rect width="108" height="108" fill="#0A0E14"/>
+      <g fill="none" stroke-linecap="round" stroke-width="6">
+        <path d="M30 82 A18 18 0 0 1 48 64" stroke="#5EC8F2"/>
+        <path d="M30 82 A40 40 0 0 1 70 42" stroke="#5EC8F2" opacity=".6"/>
+        <path d="M30 82 A62 62 0 0 1 92 20" stroke="#5EC8F2" opacity=".3"/>
+      </g>
+      <circle cx="30" cy="82" r="8" fill="#B8A2FF"/>
+    </symbol>
+    <!-- C: Check -->
+    <symbol id="C" viewBox="0 0 108 108">
+      <rect width="108" height="108" fill="#0A0E14"/>
+      <rect x="25" y="25" width="58" height="58" rx="19" fill="#5EC8F2"/>
+      <path d="M41 55 L50 64 L68 44" fill="none" stroke="#0A0E14" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="82" cy="26" r="9" fill="#B8A2FF"/>
+    </symbol>
+    <!-- D: Flip (stacked cards) -->
+    <symbol id="D" viewBox="0 0 108 108">
+      <rect width="108" height="108" fill="#0A0E14"/>
+      <rect x="22" y="22" width="50" height="50" rx="16" fill="#B8A2FF" opacity=".45"/>
+      <rect x="32" y="32" width="50" height="50" rx="16" fill="#B8A2FF" opacity=".75"/>
+      <rect x="42" y="42" width="44" height="44" rx="14" fill="#5EC8F2"/>
+    </symbol>
+    <!-- E: K monogram -->
+    <symbol id="E" viewBox="0 0 108 108">
+      <rect width="108" height="108" fill="#0A0E14"/>
+      <rect x="30" y="26" width="15" height="56" rx="7.5" fill="#5EC8F2"/>
+      <path d="M52 56 L74 32" stroke="#5EC8F2" stroke-width="15" stroke-linecap="round" fill="none"/>
+      <circle cx="73" cy="72" r="10.5" fill="#B8A2FF"/>
+    </symbol>
+    <!-- F: Mono -->
+    <symbol id="F" viewBox="0 0 108 108">
+      <rect width="108" height="108" fill="#0B0B0B"/>
+      <rect x="26" y="28" width="38" height="38" rx="12" fill="#F2F2F2"/>
+      <circle cx="68" cy="68" r="19" fill="#8C8C8C"/>
+    </symbol>
+    <!-- G: Dial (rotating) -->
+    <symbol id="G" viewBox="0 0 108 108">
+      <rect width="108" height="108" fill="#0A0E14"/>
+      <circle cx="54" cy="54" r="30" fill="none" stroke="#243044" stroke-width="7"/>
+      <path d="M54 24 A30 30 0 0 1 84 54" fill="none" stroke="#5EC8F2" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="84" cy="54" r="8" fill="#B8A2FF"/>
+      <rect x="45" y="45" width="18" height="18" rx="6" fill="#5EC8F2"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="grid" id="grid"></div>
+
+<script>
+const opts = [
+  ['A', 'A · Pair', 'The app\'s two shapes: the rounded square (reminders) and the circle (birthdays), overlapping. Simple, instantly on-brand. Closest to today\'s icon, refined.'],
+  ['B', 'B · Arcs', 'Concentric arcs radiating from a violet dot. Echoes the background pattern and the widget\'s arcs; reads as "something coming up".'],
+  ['C', 'C · Check', 'A rounded cyan square with a check, and a violet dot as the birthday nod. The most obviously "reminders" icon.'],
+  ['D', 'D · Flip', 'Stacked cards stepping back in cyan and violet: a hint of the widget that flips through your items.'],
+  ['E', 'E · K', 'A geometric K made of a bar, a stroke and a violet dot. A distinctive monogram, a little less self-explanatory.'],
+  ['G', 'G · Dial', 'A timer ring with a progress arc, a violet marker and a rounded square at its centre. Suggests time passing toward a date.'],
+  ['F', 'F · Mono (for themed icons)', 'Option A in black, white and gray. Android 13+ can tint the icon to your wallpaper using just its shape, so any option works as a themed icon too.'],
+];
+const g = document.getElementById('grid');
+for (const [id, title, desc] of opts) {
+  const use = `<svg viewBox="0 0 108 108"><use href="#${id}"/></svg>`;
+  g.insertAdjacentHTML('beforeend', `
+  <div class="card"><h2>${title}</h2><p>${desc}</p>
+    <div class="row">
+      <div><div class="ic round">${use}</div><div class="lbl">round</div></div>
+      <div><div class="ic sq">${use}</div><div class="lbl">squircle</div></div>
+      <div><div class="ic sm sq">${use}</div><div class="lbl">small</div></div>
+      <div><div class="ic xs round">${use}</div><div class="lbl">tiny</div></div>
+    </div>
+    <div class="wall"><div class="ic sm sq">${use}</div><div class="ic sm round">${use}</div>
+      <span style="color:#cfd8e6;font-size:13px">on a wallpaper</span></div>
+  </div>`);
+}
+</script>
+</body>
+</html>
