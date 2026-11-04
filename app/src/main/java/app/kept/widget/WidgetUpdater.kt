@@ -63,10 +63,34 @@ object WidgetUpdater {
     private const val VIOLET = "#B8A2FF"
     private const val DANGER = "#FF7D8E"
 
+    /** Colours and background layouts for one widget variant (colour or monochrome). */
+    private class Theme(val mono: Boolean) {
+        val text = Color.parseColor(if (mono) "#F2F2F2" else "#E8EEF6")
+        val muted = Color.parseColor(if (mono) "#8C8C8C" else "#8FA0B8")
+        private val reminder = Color.parseColor(if (mono) "#CFCFCF" else ACCENT)
+        private val birthday = Color.parseColor(if (mono) "#9E9E9E" else VIOLET)
+        private val overdue = Color.parseColor(if (mono) "#FFFFFF" else DANGER)
+        val rootBg = if (mono) R.drawable.widget_bg_mono else R.drawable.widget_bg
+        fun bgLayout(isBirthday: Boolean) = when {
+            mono -> if (isBirthday) R.layout.wi_bg_mono_birthday else R.layout.wi_bg_mono
+            else -> if (isBirthday) R.layout.wi_bg_birthday else R.layout.wi_bg_reminder
+        }
+        fun tone(item: AgendaItem) = when {
+            item.isOverdue -> overdue
+            item.kind == ItemKind.BIRTHDAY -> birthday
+            else -> reminder
+        }
+    }
+
+    /** Which variant a placed widget is, from the provider it was added as. */
+    private fun themeFor(mgr: AppWidgetManager, id: Int) =
+        Theme(mgr.getAppWidgetInfo(id)?.provider?.className == MonoWidgetProvider::class.java.name)
+
     /** Rebuilds all placed widgets (or just [onlyIds]) from the database, keeping each one's current position. */
     suspend fun refresh(context: Context, onlyIds: IntArray? = null) {
         val mgr = AppWidgetManager.getInstance(context)
-        val ids = onlyIds ?: mgr.getAppWidgetIds(ComponentName(context, RotatingWidgetProvider::class.java))
+        val ids = onlyIds ?: (mgr.getAppWidgetIds(ComponentName(context, RotatingWidgetProvider::class.java)) +
+            mgr.getAppWidgetIds(ComponentName(context, MonoWidgetProvider::class.java)))
         if (ids.isEmpty()) return
         val items = context.app.activeAgenda().take(MAX_ITEMS)
         ids.forEach { update(context, mgr, it, items, startAt = currentIndex(context, it, items.size), step = 0) }
@@ -101,6 +125,7 @@ object WidgetUpdater {
         val p = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val shownIndex = if (items.isEmpty()) 0 else Math.floorMod(startAt + step, items.size)
         val variantB = p.getBoolean("b_$id", false) xor (step != 0)
+        val theme = themeFor(mgr, id)
         p.edit().putInt("pos_$id", shownIndex).putLong("t_$id", System.currentTimeMillis()).putBoolean("b_$id", variantB).apply()
 
         // Rotate so the first child is [startAt]; labels keep their true numbers.
@@ -109,13 +134,13 @@ object WidgetUpdater {
             // The launcher picks the entry that fits the widget's current size - and re-picks on resize.
             RemoteViews(
                 mapOf(
-                    SizeF(110f, 110f) to build(context, id, WidgetSize.COMPACT, variantB, items, order, step),
-                    SizeF(220f, 110f) to build(context, id, WidgetSize.WIDE, variantB, items, order, step),
-                    SizeF(220f, 170f) to build(context, id, WidgetSize.LARGE, variantB, items, order, step),
+                    SizeF(110f, 110f) to build(context, id, WidgetSize.COMPACT, variantB, items, order, step, theme),
+                    SizeF(220f, 110f) to build(context, id, WidgetSize.WIDE, variantB, items, order, step, theme),
+                    SizeF(220f, 170f) to build(context, id, WidgetSize.LARGE, variantB, items, order, step, theme),
                 )
             )
         } else {
-            build(context, id, sizeFor(mgr, id), variantB, items, order, step)
+            build(context, id, sizeFor(mgr, id), variantB, items, order, step, theme)
         }
         mgr.updateAppWidget(id, views)
     }
@@ -148,10 +173,13 @@ object WidgetUpdater {
 
     private fun build(
         context: Context, id: Int, size: WidgetSize, variantB: Boolean,
-        items: List<AgendaItem>, order: List<Int>, step: Int,
+        items: List<AgendaItem>, order: List<Int>, step: Int, theme: Theme,
     ): RemoteViews {
         val rv = RemoteViews(context.packageName, if (variantB) size.layoutB else size.layout)
         val pkg = context.packageName
+        rv.setInt(R.id.widget_root, "setBackgroundResource", theme.rootBg)
+        rv.setTextColor(R.id.empty_title, theme.text)
+        rv.setTextColor(R.id.empty_sub, theme.muted)
         rv.setOnClickPendingIntent(R.id.btn_prev, flipIntent(context, id, ACTION_PREV))
         rv.setOnClickPendingIntent(R.id.btn_next, flipIntent(context, id, ACTION_NEXT))
         // Nothing to flip through with 0 or 1 items.
@@ -175,22 +203,16 @@ object WidgetUpdater {
 
         val flippers = flippersFor(size)
         flippers.forEach { rv.removeAllViews(it) }
-        order.forEach { i -> addItem(rv, pkg, size, items[i], i, items.size) }
+        order.forEach { i -> addItem(rv, pkg, size, items[i], i, items.size, theme) }
         if (step != 0) flippers.forEach { if (step > 0) rv.showNext(it) else rv.showPrevious(it) }
         return rv
     }
 
     /** Adds one child (this item's piece) to every flipper. */
-    private fun addItem(rv: RemoteViews, pkg: String, size: WidgetSize, item: AgendaItem, pos: Int, total: Int) {
+    private fun addItem(rv: RemoteViews, pkg: String, size: WidgetSize, item: AgendaItem, pos: Int, total: Int, theme: Theme) {
         val isBirthday = item.kind == ItemKind.BIRTHDAY
         // Reminders: ice cyan, rounded-square marker, arc pattern. Birthdays: violet, circle, dot pattern, bigger name.
-        val tone = Color.parseColor(
-            when {
-                item.isOverdue -> DANGER
-                isBirthday -> VIOLET
-                else -> ACCENT
-            }
-        )
+        val tone = theme.tone(item)
         val sp = TypedValue.COMPLEX_UNIT_SP
         val (titleSp, statusSp) = when (size) {
             WidgetSize.COMPACT -> if (isBirthday) 25f to 15f else 22f to 14f
@@ -198,7 +220,7 @@ object WidgetUpdater {
             WidgetSize.LARGE -> if (isBirthday) 42f to 22f else 34f to 21f
         }
 
-        rv.addView(R.id.bg_flipper, RemoteViews(pkg, if (isBirthday) R.layout.wi_bg_birthday else R.layout.wi_bg_reminder))
+        rv.addView(R.id.bg_flipper, RemoteViews(pkg, theme.bgLayout(isBirthday)))
 
         RemoteViews(pkg, if (isBirthday) R.layout.wi_marker_ci else R.layout.wi_marker_sq).also {
             it.setInt(R.id.wi_marker, "setColorFilter", tone)
@@ -206,11 +228,13 @@ object WidgetUpdater {
         }
         RemoteViews(pkg, R.layout.wi_counter).also {
             it.setTextViewText(R.id.wi_text, if (total > 1) "${pos + 1}/$total" else "")
+            it.setTextColor(R.id.wi_text, theme.muted)
             it.setTextViewTextSize(R.id.wi_text, sp, if (size == WidgetSize.LARGE) 13f else 12f)
             rv.addView(R.id.counter_flipper, it)
         }
         RemoteViews(pkg, R.layout.wi_title).also {
             it.setTextViewText(R.id.wi_text, item.title)
+            it.setTextColor(R.id.wi_text, theme.text)
             it.setTextViewTextSize(R.id.wi_text, sp, titleSp)
             it.setInt(R.id.wi_text, "setMaxLines", if (size == WidgetSize.WIDE) 1 else 2)
             rv.addView(R.id.title_flipper, it)
@@ -226,6 +250,7 @@ object WidgetUpdater {
             RemoteViews(pkg, R.layout.wi_date).also {
                 it.setTextViewText(R.id.wi_text, if (isBirthday && item.turningAge != null) "$d  ·  turns ${item.turningAge}" else d)
                 it.setTextViewTextSize(R.id.wi_text, sp, if (size == WidgetSize.LARGE) 15f else 13f)
+                it.setTextColor(R.id.wi_text, theme.muted)
                 rv.addView(R.id.date_flipper, it)
             }
         }
@@ -247,6 +272,7 @@ object WidgetUpdater {
                     },
                 )
                 it.setTextViewTextSize(R.id.wi_text, sp, 13f)
+                it.setTextColor(R.id.wi_text, theme.muted)
                 rv.addView(R.id.label_flipper, it)
             }
         }
@@ -254,6 +280,7 @@ object WidgetUpdater {
             RemoteViews(pkg, R.layout.wi_notes).also {
                 it.setTextViewText(R.id.wi_text, item.notes)
                 it.setTextViewTextSize(R.id.wi_text, sp, 16f)
+                it.setTextColor(R.id.wi_text, theme.muted)
                 rv.addView(R.id.notes_flipper, it)
             }
         }

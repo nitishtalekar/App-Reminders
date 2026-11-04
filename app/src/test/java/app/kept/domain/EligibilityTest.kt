@@ -135,6 +135,20 @@ class EligibilityTest {
         assertEquals(0, Eligibility.clearedDaysLeft(r, 1_000_000L + 73 * h))
     }
 
+    @Test fun calendarPlacesRemindersAndBirthdaysOnTheirDays() {
+        val today = d(2027, 2, 10)
+        val ev = Eligibility.calendarEvents(
+            reminders = listOf(reminder(d(2027, 2, 14), 3, id = 1), reminder(d(2027, 2, 20), 3, cleared = true, id = 2), reminder(d(2027, 3, 1), 0, id = 3)),
+            birthdays = listOf(bday(2, 29, 3, 2000, id = 4), bday(7, 4, 0, id = 5)),
+            today = today, month = java.time.YearMonth.of(2027, 2),
+        )
+        assertEquals(listOf("REMINDER:1"), ev[d(2027, 2, 14)]!!.map { it.key })
+        assertNull(ev[d(2027, 2, 20)])                       // cleared: not shown
+        assertEquals(listOf("BIRTHDAY:4"), ev[d(2027, 2, 28)]!!.map { it.key }) // Feb 29 observed on the 28th
+        assertEquals(27, ev[d(2027, 2, 28)]!![0].turningAge)
+        assertEquals(2, ev.size)                              // March reminder and July birthday excluded
+    }
+
     @Test fun emptyInputsGiveEmptyAgenda() {
         assertTrue(Eligibility.activeAgenda(emptyList(), emptyList(), d(2026, 1, 1)).isEmpty())
     }

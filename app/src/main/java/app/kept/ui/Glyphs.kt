@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-enum class Glyph { Plus, Check, Close, Back, Trash, Copy, Restore, Sliders }
+enum class Glyph { Plus, Check, Close, Back, Trash, Copy, Restore, Sliders, Calendar, ChevLeft, ChevRight }
 
 /** Hand-drawn 24-unit line icons: one stroke weight, square caps - matches the flat geometric language. */
 @Composable
@@ -53,6 +53,13 @@ fun GlyphIcon(glyph: Glyph, tint: Color, modifier: Modifier = Modifier, size: Dp
                 val arm = Path().apply { moveTo(4f * k, 9.5f * k); lineTo(14f * k, 9.5f * k); lineTo(19f * k, 13f * k); lineTo(19f * k, 19f * k); lineTo(10f * k, 19f * k) }
                 drawPath(arm, tint, style = stroke)
             }
+            Glyph.Calendar -> {
+                drawRoundRect(tint, p(4f, 6f), Size(16f * k, 14f * k), androidx.compose.ui.geometry.CornerRadius(3f * k), style = stroke)
+                line(4f, 11f, 20f, 11f); line(9f, 3.5f, 9f, 8f); line(15f, 3.5f, 15f, 8f)
+                dot(tint, p(9f, 15f), 1.2f * k); dot(tint, p(15f, 15f), 1.2f * k)
+            }
+            Glyph.ChevLeft -> drawPath(Path().apply { moveTo(14f * k, 6f * k); lineTo(8f * k, 12f * k); lineTo(14f * k, 18f * k) }, tint, style = stroke)
+            Glyph.ChevRight -> drawPath(Path().apply { moveTo(10f * k, 6f * k); lineTo(16f * k, 12f * k); lineTo(10f * k, 18f * k) }, tint, style = stroke)
             Glyph.Sliders -> {
                 line(4f, 8f, 20f, 8f); line(4f, 16f, 20f, 16f)
                 dot(tint, p(9f, 8f), 3f * k); dot(tint, p(15f, 16f), 3f * k)

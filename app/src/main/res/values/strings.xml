@@ -2,4 +2,6 @@
     <string name="app_name">Kept</string>
     <string name="widget_label">Kept rotating reminders</string>
     <string name="widget_description">One reminder or birthday at a time, rotating automatically.</string>
+    <string name="widget_label_mono">Kept - monochrome</string>
+    <string name="widget_description_mono">Black, white and gray. One reminder or birthday at a time.</string>
 </resources>

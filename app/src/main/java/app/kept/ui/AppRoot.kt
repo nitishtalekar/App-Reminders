@@ -81,7 +81,11 @@ fun AppRoot(vm: AppViewModel) {
         }
     }
 
-    fun home() { route = "home" }
+    // Where "back" / "after save" returns to: normally home, but the calendar when an item was opened from it.
+    var backTo by rememberSaveable { mutableStateOf("home") }
+    var presetEpoch by rememberSaveable { mutableLongStateOf(-1L) }
+    fun home() { route = backTo; backTo = "home"; presetEpoch = -1L }
+    fun fromCalendar(r: String) { backTo = "calendar"; route = r }
     BackHandler(enabled = route != "home") { home() }
 
     Box(Modifier.fillMaxSize().background(C.Bg).arcPattern().windowInsetsPadding(WindowInsets.systemBars)) {
@@ -95,6 +99,7 @@ fun AppRoot(vm: AppViewModel) {
                                 onOpenReminder = { route = "reminder/$it" },
                                 onOpenBirthday = { route = "birthday/$it" },
                                 onSettings = { route = "settings" },
+                                onCalendar = { backTo = "home"; route = "calendar" },
                             )
                             1 -> RemindersScreen(
                                 state,
@@ -130,12 +135,21 @@ fun AppRoot(vm: AppViewModel) {
                     BottomBar(tab) { tab = it }
                 }
 
+                r == "calendar" -> CalendarScreen(
+                    state,
+                    onBack = { backTo = "home"; route = "home" },
+                    onOpenReminder = { fromCalendar("reminder/$it") },
+                    onOpenBirthday = { fromCalendar("birthday/$it") },
+                    onAddReminder = { d -> presetEpoch = d.toEpochDay(); fromCalendar("reminder/new") },
+                )
+
                 r.startsWith("reminder/") -> {
                     val id = r.removePrefix("reminder/").toLongOrNull()
                     val existing = id?.let { i -> state.reminders.firstOrNull { it.id == i } }
                     if (id != null && existing == null && state.loaded) { LaunchedEffect(Unit) { home() } } else {
                         ReminderEditor(
                             initial = existing, today = state.today, defaultLead = state.settings.defaultReminderLead,
+                            presetDate = if (presetEpoch >= 0) java.time.LocalDate.ofEpochDay(presetEpoch) else null,
                             onSave = { vm.save(it); askPermissionIfNeeded(); home(); toast(if (existing == null) "Reminder added" else "Saved") },
                             onDelete = { vm.deleteReminder(it); home(); toast("Deleted") },
                             onToggleCleared = { rem ->

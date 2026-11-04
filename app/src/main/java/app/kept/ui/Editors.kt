@@ -67,12 +67,12 @@ private fun LeadPicker(value: Int, onChange: (Int) -> Unit, presets: List<Int>) 
 /** Equal-width cells in rows of [cols]; the last row is padded with empty cells so columns line up. */
 @Composable
 private fun Grid(cols: Int, count: Int, cell: @Composable (Int) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column {
         for (r in 0 until (count + cols - 1) / cols) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 for (c in 0 until cols) {
                     val i = r * cols + c
-                    Box(Modifier.weight(1f)) { if (i < count) cell(i) }
+                    Box(Modifier.weight(1f), contentAlignment = Alignment.Center) { if (i < count) cell(i) }
                 }
             }
         }
@@ -90,6 +90,7 @@ fun ReminderEditor(
     initial: Reminder?,
     today: LocalDate,
     defaultLead: Int,
+    presetDate: LocalDate? = null,
     onSave: (Reminder) -> Unit,
     onDelete: (Long) -> Unit,
     onToggleCleared: (Reminder) -> Unit,
@@ -97,7 +98,7 @@ fun ReminderEditor(
 ) {
     var title by rememberSaveable { mutableStateOf(initial?.title ?: "") }
     var notes by rememberSaveable { mutableStateOf(initial?.notes ?: "") }
-    var epochDay by rememberSaveable { mutableLongStateOf((initial?.date ?: today).toEpochDay()) }
+    var epochDay by rememberSaveable { mutableLongStateOf((initial?.date ?: presetDate ?: today).toEpochDay()) }
     var lead by rememberSaveable { mutableIntStateOf(initial?.leadDays ?: defaultLead) }
     var picking by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
@@ -157,9 +158,10 @@ fun ReminderEditor(
         val startIn = Eligibility.daysBetween(today, start)
         Text(
             when {
-                lead == 0 -> "Appears on ${date.shortLabel(today)} and stays until you clear it."
-                startIn <= 0 -> "Active from today (window opened ${start.shortLabel(today)}), until you clear it."
-                else -> "Becomes active ${start.shortLabel(today)} - in $startIn ${if (startIn == 1) "day" else "days"} - and stays until you clear it."
+                lead == 0 -> "Shows up on ${date.shortLabel(today)}, then stays until you clear it."
+                startIn <= 0 -> "Already showing since ${start.shortLabel(today)}. Stays until you clear it."
+                startIn == 1 -> "Starts showing tomorrow, ${start.shortLabel(today)}. Stays until you clear it."
+                else -> "Starts showing ${start.shortLabel(today)}, in $startIn days. Stays until you clear it."
             },
             style = T.Body, color = C.Muted,
         )
@@ -263,11 +265,10 @@ fun BirthdayEditor(
         val windowStart = next.minusDays(lead.toLong())
         Text(
             buildString {
-                append("Next: ${next.shortLabel(today)} - ")
-                append(if (n == 0) "today" else if (n == 1) "tomorrow" else "in $n days")
-                if (year != null && !yearInvalid) append(" · turns ${next.year - year}")
+                append("Next one is ${if (n == 0) "today" else if (n == 1) "tomorrow" else "in $n days"}, ${next.shortLabel(today)}")
+                if (year != null && !yearInvalid) append(", turning ${next.year - year}")
                 append(". ")
-                append(if (lead == 0) "Reminds on the day, every year." else "Reminds from ${windowStart.shortLabel(today)}, every year.")
+                append(if (lead == 0) "You'll be reminded on the day, every year." else "You'll be reminded from ${windowStart.shortLabel(today)}, and again every year.")
             },
             style = T.Body, color = C.Muted,
         )

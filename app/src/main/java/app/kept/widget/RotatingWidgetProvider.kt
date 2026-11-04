@@ -11,7 +11,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class RotatingWidgetProvider : AppWidgetProvider() {
+open class RotatingWidgetProvider : AppWidgetProvider() {
 
     override fun onReceive(context: Context, intent: android.content.Intent) {
         val forward = when (intent.action) {
@@ -42,3 +42,6 @@ class RotatingWidgetProvider : AppWidgetProvider() {
         // First widget placed: make sure the midnight alarm exists even if the app was never opened.
         async(context) { Scheduler.scheduleAll(context.app) }
 }
+
+/** The black / white / gray variant. Same behaviour; WidgetUpdater picks the palette from this class. */
+class MonoWidgetProvider : RotatingWidgetProvider()

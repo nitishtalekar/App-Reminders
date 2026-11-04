@@ -117,16 +117,21 @@ fun KeptField(
 
 @Composable
 fun Chip(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    // Slim 34dp pill, but the tappable area stays 44dp tall so it is still easy to hit.
     Box(
-        modifier.heightIn(min = 48.dp).defaultMinSize(minWidth = 48.dp)
-            .clip(CircleShape)
-            .background(if (selected) C.Accent else C.Surface)
-            .border(BorderStroke(1.dp, if (selected) C.Accent else C.Line), CircleShape)
-            .clickable(role = Role.RadioButton, onClick = onClick)
-            .padding(horizontal = 6.dp),
+        modifier.heightIn(min = 44.dp).clickable(role = Role.RadioButton, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Text(label, style = T.Label.copy(fontSize = 14.sp), color = if (selected) C.Bg else C.Text, maxLines = 1)
+        Box(
+            Modifier.height(34.dp).defaultMinSize(minWidth = 40.dp)
+                .clip(CircleShape)
+                .background(if (selected) C.Accent else C.Surface)
+                .border(BorderStroke(1.dp, if (selected) C.Accent else C.Line), CircleShape)
+                .padding(horizontal = 14.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(label, style = T.Label.copy(fontSize = 14.sp), color = if (selected) C.Bg else C.Text, maxLines = 1)
+        }
     }
 }
 
@@ -136,7 +141,6 @@ fun ChipRow(content: @Composable () -> Unit) {
     FlowRow(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) { content() }
 }
 
@@ -156,10 +160,15 @@ fun Stepper(value: Int, onChange: (Int) -> Unit, range: IntRange, label: (Int) -
 @Composable
 private fun StepButton(symbol: String, description: String, enabled: Boolean, onClick: () -> Unit) {
     Box(
-        Modifier.size(48.dp).clip(CircleShape).background(C.Surface).border(BorderStroke(1.dp, C.Line), CircleShape)
+        Modifier.size(48.dp)
             .then(if (enabled) Modifier.clickable(role = Role.Button, onClickLabel = description, onClick = onClick) else Modifier),
         contentAlignment = Alignment.Center,
-    ) { Text(symbol, style = T.Heading, color = if (enabled) C.Text else C.Line) }
+    ) {
+        Box(
+            Modifier.size(38.dp).clip(CircleShape).background(C.Surface).border(BorderStroke(1.dp, C.Line), CircleShape),
+            contentAlignment = Alignment.Center,
+        ) { Text(symbol, style = T.Heading, color = if (enabled) C.Text else C.Line) }
+    }
 }
 
 @Composable

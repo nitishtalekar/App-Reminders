@@ -86,6 +86,28 @@ object Eligibility {
             birthdays.filter { isBirthdayInWindow(it, today) }.map { birthdayItem(it, today) })
             .sortedWith(agendaOrder)
 
+    /**
+     * Everything that lands on a day of [month]: uncleared reminders on their due date, and birthdays on
+     * the day they are observed that year (Feb 29 -> Feb 28 in non-leap years). Used by the calendar view.
+     */
+    fun calendarEvents(
+        reminders: List<Reminder>, birthdays: List<Birthday>, today: LocalDate, month: java.time.YearMonth,
+    ): Map<LocalDate, List<AgendaItem>> {
+        val out = HashMap<LocalDate, MutableList<AgendaItem>>()
+        reminders.filter { it.clearedAtMillis == null && java.time.YearMonth.from(it.date) == month }
+            .forEach { out.getOrPut(it.date) { mutableListOf() } += reminderItem(it, today) }
+        birthdays.forEach { b ->
+            val d = observedDate(b.month, b.day, month.year)
+            if (java.time.YearMonth.from(d) == month) {
+                out.getOrPut(d) { mutableListOf() } += AgendaItem(
+                    kind = ItemKind.BIRTHDAY, sourceId = b.id, title = b.name, date = d,
+                    daysUntil = daysBetween(today, d), notes = b.notes, turningAge = b.birthYear?.let { d.year - it },
+                )
+            }
+        }
+        return out.mapValues { (_, v) -> v.sortedWith(agendaOrder) }
+    }
+
     /** Reminders that are not yet in their window (not cleared). */
     fun upcomingReminders(reminders: List<Reminder>, today: LocalDate): List<AgendaItem> =
         reminders.filter { it.clearedAtMillis == null && !isReminderActive(it, today) }

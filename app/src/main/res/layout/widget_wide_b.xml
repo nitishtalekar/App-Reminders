@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/widget_bg">
@@ -126,6 +127,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-black"
+            android:id="@+id/empty_title"
             android:text="All clear."
             android:textColor="@color/text"
             android:textSize="26sp" />
@@ -135,6 +137,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
             android:fontFamily="sans-serif"
+            android:id="@+id/empty_sub"
             android:text="Nothing needs you today."
             android:textColor="@color/muted"
             android:textSize="13sp" />

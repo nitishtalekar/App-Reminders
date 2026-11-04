@@ -36,6 +36,7 @@ fun TodayScreen(
     onOpenReminder: (Long) -> Unit,
     onOpenBirthday: (Long) -> Unit,
     onSettings: () -> Unit,
+    onCalendar: () -> Unit,
 ) {
     val today = state.today
     val agenda = Eligibility.activeAgenda(state.reminders, state.birthdays, today)
@@ -59,6 +60,7 @@ fun TodayScreen(
                         style = T.Body, color = C.Muted, modifier = Modifier.padding(top = 4.dp),
                     )
                 }
+                IconAction(Glyph.Calendar, "Calendar", onCalendar)
                 IconAction(Glyph.Sliders, "Settings", onSettings)
             }
         }

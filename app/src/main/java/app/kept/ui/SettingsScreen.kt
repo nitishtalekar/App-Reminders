@@ -103,6 +103,15 @@ fun SettingsScreen(
                     },
                     modifier = Modifier.padding(horizontal = ScreenPadding - 4.dp),
                 )
+                TextAction(
+                    "Add monochrome widget", C.Text,
+                    onClick = {
+                        manager.requestPinAppWidget(
+                            android.content.ComponentName(context, app.kept.widget.MonoWidgetProvider::class.java), null, null,
+                        )
+                    },
+                    modifier = Modifier.padding(horizontal = ScreenPadding - 4.dp),
+                )
             }
         }
     }
