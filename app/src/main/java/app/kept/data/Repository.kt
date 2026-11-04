@@ -28,6 +28,11 @@ class Repository(
         onChanged()
     }
 
+    /** Permanently removes reminders that were cleared more than 72 hours ago. */
+    suspend fun purgeExpiredCleared(nowMillis: Long = System.currentTimeMillis()) {
+        db.reminders().deleteClearedBefore(nowMillis - app.kept.domain.Eligibility.CLEARED_RETENTION_MILLIS)
+    }
+
     suspend fun save(b: Birthday) { db.birthdays().upsert(b.toEntity()); onChanged() }
     suspend fun deleteBirthday(id: Long) { db.birthdays().delete(id); onChanged() }
 }

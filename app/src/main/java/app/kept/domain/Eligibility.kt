@@ -21,6 +21,18 @@ object Eligibility {
 
     fun activeFrom(reminder: Reminder): LocalDate = reminder.date.minusDays(reminder.leadDays.toLong())
 
+    /** Cleared reminders stay in the Cleared list for 72 hours, then are deleted for good. */
+    const val CLEARED_RETENTION_MILLIS = 3L * 24 * 60 * 60 * 1000
+
+    fun isClearedExpired(reminder: Reminder, nowMillis: Long): Boolean =
+        reminder.clearedAtMillis?.let { nowMillis - it >= CLEARED_RETENTION_MILLIS } ?: false
+
+    /** Whole days left before a cleared reminder is removed (3, 2, 1, or 0 = under a day). */
+    fun clearedDaysLeft(reminder: Reminder, nowMillis: Long): Int {
+        val left = (reminder.clearedAtMillis ?: return 0) + CLEARED_RETENTION_MILLIS - nowMillis
+        return if (left <= 0) 0 else ((left + 86_399_999L) / 86_400_000L).toInt().coerceAtMost(3)
+    }
+
     fun daysBetween(today: LocalDate, target: LocalDate): Int =
         ChronoUnit.DAYS.between(today, target).toInt()
 

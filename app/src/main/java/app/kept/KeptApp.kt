@@ -34,6 +34,7 @@ class KeptApp : Application() {
      * stale notifications are removed, the next daily alarm is (re)scheduled and the widget is refreshed.
      */
     suspend fun syncSystem() {
+        repository.purgeExpiredCleared()
         Notifier.pruneStale(this)
         Scheduler.scheduleAll(this)
         WidgetUpdater.refresh(this)

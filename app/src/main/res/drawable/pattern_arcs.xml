@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Concentric quarter arcs centred on the bottom-right corner. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp" android:height="120dp" android:viewportWidth="120" android:viewportHeight="120">
+    <path android:pathData="M90,120 A30,30 0 0 1 120,90" android:strokeColor="#5EC8F2" android:strokeAlpha="0.20" android:strokeWidth="2" />
+    <path android:pathData="M65,120 A55,55 0 0 1 120,65" android:strokeColor="#5EC8F2" android:strokeAlpha="0.14" android:strokeWidth="2" />
+    <path android:pathData="M40,120 A80,80 0 0 1 120,40" android:strokeColor="#5EC8F2" android:strokeAlpha="0.09" android:strokeWidth="2" />
+    <path android:pathData="M15,120 A105,105 0 0 1 120,15" android:strokeColor="#5EC8F2" android:strokeAlpha="0.05" android:strokeWidth="2" />
+</vector>

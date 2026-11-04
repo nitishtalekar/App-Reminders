@@ -15,14 +15,15 @@ import app.kept.R
 
 /** Kept: near-black ink, one warm amber accent, one coral reserved for "overdue". */
 object C {
-    val Bg = Color(0xFF0D0E10)
-    val Surface = Color(0xFF15171A)
-    val Raised = Color(0xFF1C1F23)
-    val Line = Color(0xFF2A2D31)
-    val Text = Color(0xFFECEAE4)
-    val Muted = Color(0xFF9A9DA3)   // 6.9:1 on Bg
-    val Accent = Color(0xFFF0B24B)  // 10:1 on Bg
-    val Danger = Color(0xFFFF7A6B)  // 7:1 on Bg
+    val Bg = Color(0xFF0A0E14)
+    val Surface = Color(0xFF111823)
+    val Raised = Color(0xFF182233)
+    val Line = Color(0xFF243044)
+    val Text = Color(0xFFE8EEF6)
+    val Muted = Color(0xFF8FA0B8)   // ~7:1 on Bg
+    val Accent = Color(0xFF5EC8F2)  // ice cyan: reminders and actions
+    val Violet = Color(0xFFB8A2FF)  // soft violet: birthdays only
+    val Danger = Color(0xFFFF7D8E)  // cool coral: overdue/delete only
 }
 
 @OptIn(androidx.compose.ui.text.ExperimentalTextApi::class)

@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
@@ -48,7 +49,7 @@ fun Hairline(modifier: Modifier = Modifier) =
 @Composable
 fun Marker(kind: ItemKind, color: Color, size: Dp = 10.dp) {
     Box(
-        Modifier.size(size).background(color, if (kind == ItemKind.BIRTHDAY) CircleShape else RectangleShape)
+        Modifier.size(size).background(color, if (kind == ItemKind.BIRTHDAY) CircleShape else RoundedCornerShape(size / 3.2f))
     )
 }
 
@@ -91,34 +92,36 @@ fun KeptField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
 ) {
     var focused by remember { mutableStateOf(false) }
-    Column(modifier) {
-        BasicTextField(
-            value = value,
-            onValueChange = onChange,
-            textStyle = style.copy(color = C.Text),
-            singleLine = singleLine,
-            keyboardOptions = keyboardOptions,
-            cursorBrush = SolidColor(C.Accent),
-            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(vertical = 8.dp)
-                .semantics { contentDescription = placeholder }
-                .onFocusChanged { focused = it.isFocused },
-            decorationBox = { inner ->
-                Box(contentAlignment = Alignment.CenterStart) {
-                    if (value.isEmpty()) Text(placeholder, style = style, color = C.Muted)
-                    inner()
-                }
-            },
-        )
-        Box(Modifier.fillMaxWidth().height(if (focused) 2.dp else 1.dp).background(if (focused) C.Accent else C.Line))
-    }
+    val shape = RoundedCornerShape(20.dp)
+    BasicTextField(
+        value = value,
+        onValueChange = onChange,
+        textStyle = style.copy(color = C.Text),
+        singleLine = singleLine,
+        keyboardOptions = keyboardOptions,
+        cursorBrush = SolidColor(C.Accent),
+        modifier = modifier.fillMaxWidth().heightIn(min = 56.dp)
+            .background(C.Surface, shape)
+            .border(BorderStroke(if (focused) 1.5.dp else 1.dp, if (focused) C.Accent else C.Line), shape)
+            .semantics { contentDescription = placeholder }
+            .onFocusChanged { focused = it.isFocused }
+            .padding(horizontal = 18.dp, vertical = 14.dp),
+        decorationBox = { inner ->
+            Box(contentAlignment = Alignment.CenterStart) {
+                if (value.isEmpty()) Text(placeholder, style = style, color = C.Muted)
+                inner()
+            }
+        },
+    )
 }
 
 @Composable
 fun Chip(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Box(
         modifier.heightIn(min = 48.dp).defaultMinSize(minWidth = 48.dp)
-            .background(if (selected) C.Accent else Color.Transparent, RectangleShape)
-            .border(BorderStroke(1.dp, if (selected) C.Accent else C.Line), RectangleShape)
+            .clip(CircleShape)
+            .background(if (selected) C.Accent else C.Surface)
+            .border(BorderStroke(1.dp, if (selected) C.Accent else C.Line), CircleShape)
             .clickable(role = Role.RadioButton, onClick = onClick)
             .padding(horizontal = 6.dp),
         contentAlignment = Alignment.Center,
@@ -153,7 +156,7 @@ fun Stepper(value: Int, onChange: (Int) -> Unit, range: IntRange, label: (Int) -
 @Composable
 private fun StepButton(symbol: String, description: String, enabled: Boolean, onClick: () -> Unit) {
     Box(
-        Modifier.size(48.dp).border(BorderStroke(1.dp, C.Line))
+        Modifier.size(48.dp).clip(CircleShape).background(C.Surface).border(BorderStroke(1.dp, C.Line), CircleShape)
             .then(if (enabled) Modifier.clickable(role = Role.Button, onClickLabel = description, onClick = onClick) else Modifier),
         contentAlignment = Alignment.Center,
     ) { Text(symbol, style = T.Heading, color = if (enabled) C.Text else C.Line) }
@@ -162,8 +165,8 @@ private fun StepButton(symbol: String, description: String, enabled: Boolean, on
 @Composable
 fun PrimaryButton(text: String, enabled: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Box(
-        modifier.fillMaxWidth().height(56.dp)
-            .background(if (enabled) C.Accent else C.Raised, RectangleShape)
+        modifier.fillMaxWidth().height(56.dp).clip(CircleShape)
+            .background(if (enabled) C.Accent else C.Raised)
             .then(if (enabled) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier),
         contentAlignment = Alignment.Center,
     ) { Text(text, style = T.Heading, color = if (enabled) C.Bg else C.Muted) }
@@ -179,23 +182,26 @@ fun TextAction(text: String, color: Color = C.Text, onClick: () -> Unit, modifie
 
 @Composable
 fun UnderlineTabs(labels: List<String>, selected: Int, onSelect: (Int) -> Unit) {
-    Row(Modifier.fillMaxWidth().padding(horizontal = ScreenPadding), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+    Row(Modifier.fillMaxWidth().padding(horizontal = ScreenPadding, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         labels.forEachIndexed { i, l ->
-            Column(Modifier.width(IntrinsicSize.Max).clickable(role = Role.Tab, onClick = { onSelect(i) })) {
-                Box(Modifier.heightIn(min = 48.dp), contentAlignment = Alignment.CenterStart) {
-                    Text(l, style = T.Heading, color = if (i == selected) C.Text else C.Muted)
-                }
-                Box(Modifier.height(2.dp).fillMaxWidth().background(if (i == selected) C.Accent else Color.Transparent))
+            Box(
+                Modifier.heightIn(min = 44.dp).clip(CircleShape)
+                    .background(if (i == selected) C.Raised else Color.Transparent)
+                    .clickable(role = Role.Tab, onClick = { onSelect(i) })
+                    .padding(horizontal = 18.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(l, style = T.Label.copy(fontSize = 15.sp), color = if (i == selected) C.Accent else C.Muted)
             }
         }
     }
-    Hairline()
 }
 
 fun toneOf(item: AgendaItem, active: Boolean = true): Color = when {
     item.isOverdue -> C.Danger
-    active -> C.Accent
-    else -> C.Muted
+    !active -> C.Muted
+    item.kind == ItemKind.BIRTHDAY -> C.Violet
+    else -> C.Accent
 }
 
 /** The countdown block on the right of a row: "12 / days", "0 / today", "2 / days late". */
@@ -225,8 +231,9 @@ fun AgendaRow(
 ) {
     val tone = toneOf(item, active)
     Row(
-        Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = ScreenPadding, vertical = 14.dp)
+        Modifier.padding(horizontal = 12.dp, vertical = 3.dp).fillMaxWidth().clip(RoundedCornerShape(24.dp))
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 14.dp)
             .semantics(mergeDescendants = true) {},
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -242,17 +249,16 @@ fun AgendaRow(
             DaysBlock(item, tone)
         }
     }
-    Hairline(Modifier.padding(horizontal = ScreenPadding))
 }
 
 @Composable
 fun EmptyState(headline: String, body: String, modifier: Modifier = Modifier) {
     Column(modifier.fillMaxWidth().padding(horizontal = ScreenPadding, vertical = 56.dp)) {
-        Canvas(Modifier.size(width = 72.dp, height = 40.dp)) {
+        Canvas(Modifier.size(width = 96.dp, height = 44.dp)) {
             val s = size.height
-            drawRect(C.Accent, size = androidx.compose.ui.geometry.Size(s * 0.55f, s * 0.55f))
-            drawCircle(C.Line, radius = s * 0.3f, center = androidx.compose.ui.geometry.Offset(s * 1.15f, s * 0.7f))
-            drawRect(C.Line, topLeft = androidx.compose.ui.geometry.Offset(s * 1.75f, s * 0.35f), size = androidx.compose.ui.geometry.Size(s * 0.6f, s * 0.12f))
+            drawRoundRect(C.Accent, size = androidx.compose.ui.geometry.Size(s * 0.8f, s * 0.8f), cornerRadius = androidx.compose.ui.geometry.CornerRadius(s * 0.26f))
+            drawCircle(C.Violet, radius = s * 0.4f, center = androidx.compose.ui.geometry.Offset(s * 1.45f, s * 0.5f))
+            drawRoundRect(C.Line, topLeft = androidx.compose.ui.geometry.Offset(s * 2.05f, s * 0.3f), size = androidx.compose.ui.geometry.Size(s * 0.9f, s * 0.4f), cornerRadius = androidx.compose.ui.geometry.CornerRadius(s * 0.2f))
         }
         Spacer(Modifier.height(20.dp))
         Text(headline, style = T.Title, color = C.Text)
@@ -265,7 +271,7 @@ fun EmptyState(headline: String, body: String, modifier: Modifier = Modifier) {
 @Composable
 fun AddButton(description: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Box(
-        modifier.size(60.dp).background(C.Accent, RectangleShape)
+        modifier.size(62.dp).clip(CircleShape).background(C.Accent)
             .clickable(role = Role.Button, onClickLabel = description, onClick = onClick)
             .semantics { contentDescription = description },
         contentAlignment = Alignment.Center,

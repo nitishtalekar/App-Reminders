@@ -13,6 +13,16 @@ import kotlinx.coroutines.launch
 
 class RotatingWidgetProvider : AppWidgetProvider() {
 
+    override fun onReceive(context: Context, intent: android.content.Intent) {
+        val forward = when (intent.action) {
+            WidgetUpdater.ACTION_NEXT -> true
+            WidgetUpdater.ACTION_PREV -> false
+            else -> return super.onReceive(context, intent)
+        }
+        val id = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
+        if (id != AppWidgetManager.INVALID_APPWIDGET_ID) async(context) { WidgetUpdater.flip(context, id, forward) }
+    }
+
     private fun async(context: Context, block: suspend () -> Unit) {
         val pending = goAsync()
         CoroutineScope(Dispatchers.Default).launch {

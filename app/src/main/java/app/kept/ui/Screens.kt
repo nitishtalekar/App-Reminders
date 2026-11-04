@@ -107,8 +107,7 @@ private fun NextUp(item: AgendaItem, today: java.time.LocalDate, onClick: () -> 
             Text(item.notes, style = T.Body, color = C.Muted, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 10.dp))
         }
     }
-    Spacer(Modifier.height(16.dp))
-    Hairline()
+    Spacer(Modifier.height(12.dp))
 }
 
 // ───────────────────────────── Reminders ─────────────────────────────
@@ -125,7 +124,10 @@ fun RemindersScreen(
     val active = state.reminders.filter { Eligibility.isReminderActive(it, today) }
         .map { Eligibility.reminderItem(it, today) }.sortedWith(Eligibility.agendaOrder)
     val later = Eligibility.upcomingReminders(state.reminders, today)
-    val cleared = state.reminders.filter { it.clearedAtMillis != null }.sortedByDescending { it.clearedAtMillis }
+    val nowMillis = System.currentTimeMillis()
+    // Expired ones are hidden immediately; the database row is deleted on the next sync.
+    val cleared = state.reminders.filter { it.clearedAtMillis != null && !Eligibility.isClearedExpired(it, nowMillis) }
+        .sortedByDescending { it.clearedAtMillis }
     val byId = state.reminders.associateBy { it.id }
 
     Column(Modifier.fillMaxSize()) {
@@ -155,7 +157,9 @@ fun RemindersScreen(
                 if (cleared.isEmpty()) item { EmptyState("Nothing cleared yet.", "Reminders you mark done are kept here, and can be restored.") }
                 items(cleared, key = { "x" + it.id }) { r ->
                     val i = Eligibility.reminderItem(r, today)
-                    AgendaRow(i, "Was due ${r.date.shortLabel(today)}", active = false,
+                    val left = Eligibility.clearedDaysLeft(r, nowMillis)
+                    val leftText = when (left) { 0 -> "removed within a day"; 1 -> "removed in 1 day"; else -> "removed in $left days" }
+                    AgendaRow(i, "Was due ${r.date.shortLabel(today)}  ·  $leftText", active = false,
                         onClick = { onOpen(r.id) }, showDays = false,
                         leading = { IconAction(Glyph.Restore, "Restore ${r.title}", { onRestore(r) }, C.Accent) })
                 }
@@ -170,7 +174,7 @@ private fun CheckBox(title: String, onClick: () -> Unit) {
         Modifier.size(44.dp).clickable(role = Role.Button, onClickLabel = "Mark $title as done", onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Box(Modifier.size(22.dp).border(BorderStroke(2.dp, C.Muted), RectangleShape))
+        Box(Modifier.size(24.dp).border(BorderStroke(2.dp, C.Muted), androidx.compose.foundation.shape.CircleShape))
     }
 }
 
@@ -190,7 +194,6 @@ fun BirthdaysScreen(
         ScreenHeader("Birthdays") {
             if (list.isNotEmpty()) TextActionWithIcon("Copy JSON", onCopyJson)
         }
-        Hairline()
         if (!state.loaded) return@Column
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = ListBottomPadding)) {
             if (list.isEmpty()) {
@@ -218,8 +221,8 @@ private fun TextActionWithIcon(label: String, onClick: () -> Unit) {
             .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        GlyphIcon(Glyph.Copy, C.Accent, size = 20.dp)
+        GlyphIcon(Glyph.Copy, C.Violet, size = 20.dp)
         Spacer(Modifier.width(8.dp))
-        Text(label, style = T.Label.copy(fontSize = 14.sp), color = C.Accent)
+        Text(label, style = T.Label.copy(fontSize = 14.sp), color = C.Violet)
     }
 }

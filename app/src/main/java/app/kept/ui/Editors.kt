@@ -4,6 +4,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -137,7 +140,8 @@ fun ReminderEditor(
         Spacer(Modifier.height(10.dp))
         Row(
             Modifier.fillMaxWidth().heightIn(min = 56.dp)
-                .border(BorderStroke(1.dp, C.Line), RectangleShape)
+                .clip(RoundedCornerShape(20.dp)).background(C.Surface)
+                .border(BorderStroke(1.dp, C.Line), RoundedCornerShape(20.dp))
                 .clickable(role = Role.Button, onClickLabel = "Pick a date") { picking = true }
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,

@@ -1,27 +1,27 @@
 # Design notes
 
-**Mode:** Operate (a daily-use tool). Expression lives in details, not decoration.
-**Use scene:** glanced at on a phone, often in a dim room or on a lock-screen-adjacent home screen: dark, high contrast, one thing at a time.
+**Mode:** Operate (a daily-use tool). Cool, soft, flowing; expression lives in shape and one pattern, not decoration.
 
-## Palette
+## Palette (cool)
 | Token | Value | Use |
 |---|---|---|
-| Bg | `#0D0E10` | app background |
-| Raised | `#1C1F23` | dialogs, snackbar, disabled button |
-| Line | `#2A2D31` | hairlines, outlines |
-| Text | `#ECEAE4` | primary (warm off-white) |
-| Muted | `#9A9DA3` | secondary (6.9:1 on Bg) |
-| Accent | `#F0B24B` | the only accent: action, "active", today |
-| Danger | `#FF7A6B` | reserved for overdue and delete |
+| Bg | `#0A0E14` | app background |
+| Surface / Raised | `#111823` / `#182233` | fields, bar, dialogs |
+| Line | `#243044` | outlines |
+| Text | `#E8EEF6` | primary |
+| Muted | `#8FA0B8` | secondary (about 7:1 on Bg) |
+| Accent | `#5EC8F2` | ice cyan: reminders, actions |
+| Violet | `#B8A2FF` | birthdays only |
+| Danger | `#FF7D8E` | overdue / delete only |
 
 ## Type
-Space Grotesk (variable, OFL). Light 44 for the date headline and light numerals for countdowns; SemiBold for titles; Medium caps for section labels. Large jumps between steps on purpose. Widget uses system sans (RemoteViews cannot load custom fonts).
+Space Grotesk (variable, OFL) in the app. Widget uses system sans in its heaviest weight (`sans-serif-black`) because RemoteViews cannot load custom fonts.
 
-## Shape language
-Square = reminder, circle = birthday, bar = today. Flat fills and 1px hairlines; no shadows, no gradients, no card nesting, square controls.
+## Shapes
+Rounded squares = reminders, circles = birthdays. Pill buttons, chips, tabs and a floating pill tab bar; circular add button; 20dp soft fields and rows. No hairline lists.
 
-## Signature
-The countdown numeral ("3 / days", "0 / today", "2 / days late") is the visual centre of every row and the widget's wide layout.
+## Pattern
+`ui/Pattern.kt`: flat Truchet quarter-arc tiling at ~6% alpha behind the whole app. Widget: concentric arcs (bottom-right) on reminders, overlapping dots (top-right, violet) on birthdays.
 
 ## Widget
-Three intentionally different layouts: Compact (title + status), Wide (big numeral column + title/date), Large (adds date line, age and notes). One item at a time with `2/5` position; "All clear." when empty.
+Compact / Wide / Large layouts, one item at a time. Reminders: slate card, cyan, arcs. Birthdays: violet-tinted card, larger name, dots. Overdue: coral.

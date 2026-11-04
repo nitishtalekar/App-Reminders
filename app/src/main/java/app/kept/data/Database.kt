@@ -42,6 +42,7 @@ interface ReminderDao {
     @Upsert suspend fun upsert(e: ReminderEntity): Long
     @Query("DELETE FROM reminders WHERE id = :id") suspend fun delete(id: Long)
     @Query("UPDATE reminders SET clearedAt = :at WHERE id = :id") suspend fun setCleared(id: Long, at: Long?)
+    @Query("DELETE FROM reminders WHERE clearedAt IS NOT NULL AND clearedAt <= :cutoff") suspend fun deleteClearedBefore(cutoff: Long): Int
 }
 
 @Dao

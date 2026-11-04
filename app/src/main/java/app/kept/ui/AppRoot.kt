@@ -16,6 +16,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -79,7 +84,7 @@ fun AppRoot(vm: AppViewModel) {
     fun home() { route = "home" }
     BackHandler(enabled = route != "home") { home() }
 
-    Box(Modifier.fillMaxSize().background(C.Bg).windowInsetsPadding(WindowInsets.systemBars)) {
+    Box(Modifier.fillMaxSize().background(C.Bg).arcPattern().windowInsetsPadding(WindowInsets.systemBars)) {
         Crossfade(route, animationSpec = tween(140), label = "route") { r ->
             when {
                 r == "home" -> Column(Modifier.fillMaxSize()) {
@@ -171,7 +176,7 @@ fun AppRoot(vm: AppViewModel) {
 
         SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).padding(bottom = if (route == "home") 156.dp else 96.dp)) { data ->
             Row(
-                Modifier.padding(horizontal = 16.dp).fillMaxWidth().background(C.Raised).padding(start = 16.dp),
+                Modifier.padding(horizontal = 16.dp).fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(C.Raised).padding(start = 20.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(data.visuals.message, style = T.Body, color = C.Text, modifier = Modifier.weight(1f).padding(vertical = 14.dp))
@@ -189,24 +194,20 @@ fun AppRoot(vm: AppViewModel) {
 @Composable
 private fun BottomBar(selected: Int, onSelect: (Int) -> Unit) {
     val items = listOf("Today", "Reminders", "Birthdays")
-    Column {
-        Hairline()
-        Row(Modifier.fillMaxWidth().background(C.Bg)) {
-            items.forEachIndexed { i, label ->
-                Column(
-                    Modifier.weight(1f).heightIn(min = 64.dp).clickable(role = Role.Tab, onClick = { onSelect(i) }),
-                    horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center,
-                ) {
-                    // Active tab carries its own marker: square for reminders, circle for birthdays, bar for today.
-                    Box(Modifier.height(8.dp), contentAlignment = Alignment.Center) {
-                        Box(
-                            Modifier.then(when (i) { 0 -> Modifier.size(width = 16.dp, height = 4.dp); else -> Modifier.size(8.dp) })
-                                .background(if (i == selected) C.Accent else C.Line, if (i == 2) androidx.compose.foundation.shape.CircleShape else androidx.compose.ui.graphics.RectangleShape)
-                        )
-                    }
-                    Spacer(Modifier.height(8.dp))
-                    Text(label, style = T.Label.copy(fontSize = 14.sp), color = if (i == selected) C.Text else C.Muted)
-                }
+    // A floating pill bar; the selected tab gets a soft pill in its own colour (violet for birthdays).
+    Row(
+        Modifier.padding(horizontal = 20.dp, vertical = 10.dp).fillMaxWidth().clip(CircleShape)
+            .background(C.Surface).border(1.dp, C.Line, CircleShape).padding(6.dp),
+    ) {
+        items.forEachIndexed { i, label ->
+            val tone = if (i == 2) C.Violet else C.Accent
+            Box(
+                Modifier.weight(1f).heightIn(min = 48.dp).clip(CircleShape)
+                    .background(if (i == selected) tone.copy(alpha = 0.16f) else Color.Transparent)
+                    .clickable(role = Role.Tab, onClick = { onSelect(i) }),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(label, style = T.Label.copy(fontSize = 14.sp), color = if (i == selected) tone else C.Muted)
             }
         }
     }

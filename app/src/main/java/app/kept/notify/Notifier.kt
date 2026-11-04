@@ -75,7 +75,7 @@ object Notifier {
             .setOnlyAlertOnce(true)
             .setAutoCancel(true)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
-            .setColor(0xFFF0B24B.toInt())
+            .setColor(if (item.kind == ItemKind.BIRTHDAY) 0xFFB8A2FF.toInt() else 0xFF5EC8F2.toInt())
         if (item.notes.isNotBlank()) b.setStyle(NotificationCompat.BigTextStyle().bigText("${Phrases.status(item)}\n${item.notes}"))
         if (grouped) b.setGroup(GROUP)
         if (item.kind == ItemKind.REMINDER) {
@@ -96,7 +96,7 @@ object Notifier {
             .setGroup(GROUP).setGroupSummary(true)
             .setContentIntent(contentIntent(context))
             .setAutoCancel(true)
-            .setColor(0xFFF0B24B.toInt())
+            .setColor(0xFF5EC8F2.toInt())
             .build()
         notify(context, SUMMARY_ID, n)
     }

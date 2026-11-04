@@ -124,6 +124,17 @@ class EligibilityTest {
         assertEquals(listOf("REMINDER:3", "REMINDER:2", "BIRTHDAY:6", "REMINDER:1"), agenda.map { it.key })
     }
 
+    @Test fun clearedReminderExpiresAfter72Hours() {
+        val h = 3_600_000L
+        val r = Reminder(1, "R", "", d(2026, 5, 1), 0, clearedAtMillis = 1_000_000L)
+        assertFalse(Eligibility.isClearedExpired(r, 1_000_000L + 71 * h))
+        assertTrue(Eligibility.isClearedExpired(r, 1_000_000L + 72 * h))
+        assertFalse(Eligibility.isClearedExpired(r.copy(clearedAtMillis = null), Long.MAX_VALUE))
+        assertEquals(3, Eligibility.clearedDaysLeft(r, 1_000_000L))
+        assertEquals(1, Eligibility.clearedDaysLeft(r, 1_000_000L + 50 * h))
+        assertEquals(0, Eligibility.clearedDaysLeft(r, 1_000_000L + 73 * h))
+    }
+
     @Test fun emptyInputsGiveEmptyAgenda() {
         assertTrue(Eligibility.activeAgenda(emptyList(), emptyList(), d(2026, 1, 1)).isEmpty())
     }
