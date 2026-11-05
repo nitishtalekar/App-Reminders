@@ -96,8 +96,10 @@ fun AppRoot(vm: AppViewModel) {
                         when (tab) {
                             0 -> TodayScreen(
                                 state,
-                                onOpenReminder = { route = "reminder/$it" },
-                                onOpenBirthday = { route = "birthday/$it" },
+                                onClear = { rem ->
+                                    vm.setCleared(rem.id, true)
+                                    toast("Cleared “${rem.title}”", "Undo") { vm.setCleared(rem.id, false) }
+                                },
                                 onSettings = { route = "settings" },
                                 onCalendar = { backTo = "home"; route = "calendar" },
                             )

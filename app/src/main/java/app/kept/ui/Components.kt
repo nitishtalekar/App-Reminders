@@ -234,14 +234,14 @@ fun AgendaRow(
     item: AgendaItem,
     subtitle: String,
     active: Boolean,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)?,
     leading: (@Composable () -> Unit)? = null,
     showDays: Boolean = true,
 ) {
     val tone = toneOf(item, active)
     Row(
         Modifier.padding(horizontal = 12.dp, vertical = 3.dp).fillMaxWidth().clip(RoundedCornerShape(24.dp))
-            .clickable(role = Role.Button, onClick = onClick)
+            .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
             .padding(horizontal = 12.dp, vertical = 14.dp)
             .semantics(mergeDescendants = true) {},
         verticalAlignment = Alignment.CenterVertically,

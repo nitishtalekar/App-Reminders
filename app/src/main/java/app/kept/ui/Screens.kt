@@ -1,6 +1,7 @@
 package app.kept.ui
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -33,8 +34,7 @@ private val ListBottomPadding = 112.dp // clears the add button
 @Composable
 fun TodayScreen(
     state: UiState,
-    onOpenReminder: (Long) -> Unit,
-    onOpenBirthday: (Long) -> Unit,
+    onClear: (Reminder) -> Unit,
     onSettings: () -> Unit,
     onCalendar: () -> Unit,
 ) {
@@ -42,10 +42,15 @@ fun TodayScreen(
     val agenda = Eligibility.activeAgenda(state.reminders, state.birthdays, today)
     val activeKeys = agenda.map { it.key }.toSet()
     val coming = (Eligibility.upcomingReminders(state.reminders, today) +
-        Eligibility.birthdaysByNext(state.birthdays, today).filter { it.key !in activeKeys && it.daysUntil <= 60 })
-        .sortedWith(Eligibility.agendaOrder).take(6)
+        Eligibility.birthdaysByNext(state.birthdays, today).filter { it.key !in activeKeys })
+        .filter { it.daysUntil in 0..7 }
+        .sortedWith(Eligibility.agendaOrder)
+    val remindersById = state.reminders.associateBy { it.id }
 
-    fun open(i: AgendaItem) = if (i.kind == ItemKind.REMINDER) onOpenReminder(i.sourceId) else onOpenBirthday(i.sourceId)
+    // Reminders swipe away to be marked done; birthdays are display-only and drop off once the day is over.
+    val done: (AgendaItem) -> (() -> Unit)? = { i ->
+        if (i.kind == ItemKind.REMINDER) ({ remindersById[i.sourceId]?.let(onClear); Unit }) else null
+    }
 
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = ListBottomPadding)) {
         item {
@@ -70,11 +75,13 @@ fun TodayScreen(
         if (agenda.isEmpty()) {
             item { EmptyState("All clear.", "Nothing needs you today. New reminders appear here once their window opens.") }
         } else {
-            item { NextUp(agenda.first(), today) { open(agenda.first()) } }
+            item(key = "n" + agenda.first().key) {
+                SwipeToDone(done(agenda.first()), agenda.first().title) { NextUp(agenda.first(), today) }
+            }
             if (agenda.size > 1) {
                 item { SectionLabel("Also active · ${agenda.size - 1}") }
                 items(agenda.drop(1), key = { it.key }) { i ->
-                    AgendaRow(i, subtitleFor(i, today), active = true, onClick = { open(i) })
+                    SwipeToDone(done(i), i.title) { AgendaRow(i, subtitleFor(i, today), active = true, onClick = null) }
                 }
             }
         }
@@ -82,21 +89,40 @@ fun TodayScreen(
         if (coming.isNotEmpty()) {
             item { SectionLabel("Coming up") }
             items(coming, key = { "c" + it.key }) { i ->
-                AgendaRow(i, subtitleFor(i, today), active = false, onClick = { open(i) })
+                AgendaRow(i, subtitleFor(i, today), active = false, onClick = null)
             }
         }
     }
 }
 
+/** Swipe either way to mark done. With a null [onDone] (birthdays) the swipe is shown greyed out and snaps back. */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun SwipeToDone(onDone: (() -> Unit)?, title: String, content: @Composable () -> Unit) {
+    val state = androidx.compose.material3.rememberSwipeToDismissBoxState(
+        confirmValueChange = { v ->
+            if (onDone == null || v == androidx.compose.material3.SwipeToDismissBoxValue.Settled) false else { onDone(); true }
+        },
+    )
+    androidx.compose.material3.SwipeToDismissBox(
+        state = state,
+        modifier = if (onDone != null) Modifier.semantics { contentDescription = "Swipe to mark $title as done" } else Modifier,
+        backgroundContent = {
+            Box(Modifier.fillMaxSize().background(if (onDone != null) C.Accent else C.Line).padding(horizontal = ScreenPadding), contentAlignment = Alignment.CenterStart) {
+                Text(if (onDone != null) "Done" else "Clears itself after the day", style = T.Heading, color = if (onDone != null) C.Bg else C.Muted)
+            }
+        },
+        content = { Box(Modifier.background(C.Bg)) { content() } },
+    )
+}
+
 /** The single most pressing item, set large - the app's version of the widget's one-at-a-time display. */
 @Composable
-private fun NextUp(item: AgendaItem, today: java.time.LocalDate, onClick: () -> Unit) {
+private fun NextUp(item: AgendaItem, today: java.time.LocalDate) {
     val tone = toneOf(item)
     Column(
         Modifier.fillMaxWidth().padding(top = 28.dp)
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = ScreenPadding, vertical = 8.dp)
-            .semantics(mergeDescendants = true) {},
+            .padding(horizontal = ScreenPadding, vertical = 8.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Marker(item.kind, tone, 12.dp)
