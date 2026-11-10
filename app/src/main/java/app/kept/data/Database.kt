@@ -2,6 +2,8 @@ package app.kept.data
 
 import android.content.Context
 import androidx.room.*
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import app.kept.domain.Birthday
 import app.kept.domain.Reminder
 import kotlinx.coroutines.flow.Flow
@@ -27,12 +29,14 @@ data class BirthdayEntity(
     val birthYear: Int?,
     val leadDays: Int,
     val notes: String,
+    /** 0 = birthday, 1 = anniversary. Added in schema v2; existing rows default to birthdays. */
+    @ColumnInfo(defaultValue = "0") val type: Int = 0,
 )
 
 fun ReminderEntity.toDomain() = Reminder(id, title, notes, LocalDate.ofEpochDay(dateEpochDay), leadDays, clearedAt)
 fun Reminder.toEntity() = ReminderEntity(id, title, notes, date.toEpochDay(), leadDays, clearedAtMillis)
-fun BirthdayEntity.toDomain() = Birthday(id, name, month, day, birthYear, leadDays, notes)
-fun Birthday.toEntity() = BirthdayEntity(id, name, month, day, birthYear, leadDays, notes)
+fun BirthdayEntity.toDomain() = Birthday(id, name, month, day, birthYear, leadDays, notes, anniversary = type == 1)
+fun Birthday.toEntity() = BirthdayEntity(id, name, month, day, birthYear, leadDays, notes, if (anniversary) 1 else 0)
 
 @Dao
 interface ReminderDao {
@@ -56,14 +60,22 @@ interface BirthdayDao {
 
 // The schema is exported to app/schemas. When it changes: bump `version` and add a Migration
 // in AppDatabase.build(). Never use destructive migration - this is the user's personal data.
-@Database(entities = [ReminderEntity::class, BirthdayEntity::class], version = 1, exportSchema = true)
+@Database(entities = [ReminderEntity::class, BirthdayEntity::class], version = 2, exportSchema = true)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun reminders(): ReminderDao
     abstract fun birthdays(): BirthdayDao
 
     companion object {
+        /** v1 -> v2: birthdays can be anniversaries. Purely additive; every existing row becomes a birthday. */
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE birthdays ADD COLUMN type INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "kept.db")
+                .addMigrations(MIGRATION_1_2)
                 .build()
     }
 }

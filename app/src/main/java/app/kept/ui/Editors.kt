@@ -56,9 +56,9 @@ private fun FieldLabel(text: String) =
     Text(text.uppercase(), style = T.Caps, color = C.Muted, modifier = Modifier.padding(top = 28.dp, bottom = 8.dp))
 
 @Composable
-private fun LeadPicker(value: Int, onChange: (Int) -> Unit, presets: List<Int>) {
+private fun LeadPicker(value: Int, onChange: (Int) -> Unit, presets: List<Int>, tone: androidx.compose.ui.graphics.Color = C.Accent) {
     ChipRow {
-        presets.forEach { d -> Chip(if (d == 0) "On the day" else "$d d", value == d, { onChange(d) }) }
+        presets.forEach { d -> Chip(if (d == 0) "On the day" else "$d d", value == d, { onChange(d) }, tone = tone) }
     }
     Spacer(Modifier.height(8.dp))
     Stepper(value, onChange, 0..365, label = { Phrases.leadLabel(it) })
@@ -206,6 +206,7 @@ fun BirthdayEditor(
     onBack: () -> Unit,
 ) {
     var name by rememberSaveable { mutableStateOf(initial?.name ?: "") }
+    var anniversary by rememberSaveable { mutableStateOf(initial?.anniversary ?: false) }
     var notes by rememberSaveable { mutableStateOf(initial?.notes ?: "") }
     var month by rememberSaveable { mutableIntStateOf(initial?.month ?: today.monthValue) }
     var day by rememberSaveable { mutableIntStateOf(initial?.day ?: today.dayOfMonth) }
@@ -218,38 +219,49 @@ fun BirthdayEditor(
     val year: Int? = yearText.toIntOrNull()
     val yearInvalid = yearText.isNotEmpty() && (year == null || year !in 1900..today.year)
     val valid = name.isNotBlank() && !yearInvalid
+    val noun = Phrases.noun(anniversary).lowercase()
 
     EditorFrame(
-        title = if (initial == null) "New birthday" else "Edit birthday",
+        title = if (initial == null) "New $noun" else "Edit $noun",
         onBack = onBack,
-        trailing = { if (initial != null) IconAction(Glyph.Trash, "Delete birthday", { confirmDelete = true }, C.Danger) },
+        trailing = { if (initial != null) IconAction(Glyph.Trash, "Delete $noun", { confirmDelete = true }, C.Danger) },
         footer = {
-            PrimaryButton(if (initial == null) "Add birthday" else "Save changes", enabled = valid, onClick = {
+            PrimaryButton(if (initial == null) "Add $noun" else "Save changes", enabled = valid, tone = C.Violet, onClick = {
                 onSave(
                     Birthday(
                         id = initial?.id ?: 0, name = name.trim(), month = month, day = day,
                         birthYear = year.takeIf { yearText.isNotEmpty() }, leadDays = lead, notes = notes.trim(),
+                        anniversary = anniversary,
                     )
                 )
             })
         },
     ) {
         Spacer(Modifier.height(16.dp))
-        KeptField(name, { name = it }, "Whose birthday?", style = T.Title,
+        ChipRow {
+            Chip("Birthday", !anniversary, { anniversary = false }, tone = C.Violet)
+            Chip("Anniversary", anniversary, { anniversary = true }, tone = C.Violet)
+        }
+        Spacer(Modifier.height(8.dp))
+        KeptField(name, { name = it }, if (anniversary) "Whose anniversary?" else "Whose birthday?", style = T.Title,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words))
-
-        FieldLabel("Month")
-        Grid(cols = 4, count = 12) { i -> Chip(monthAbbr(i + 1), month == i + 1, { month = i + 1 }, Modifier.fillMaxWidth()) }
-
-        FieldLabel("Day")
-        Grid(cols = 7, count = maxDay) { i -> Chip("${i + 1}", day == i + 1, { day = i + 1 }, Modifier.fillMaxWidth()) }
-        if (month == 2 && day == 29) {
-            Spacer(Modifier.height(8.dp))
-            Text("In years without a Feb 29 this birthday is observed on Feb 28.", style = T.Label, color = C.Muted)
+        if (anniversary) {
+            Spacer(Modifier.height(6.dp))
+            Text("A wedding, a couple, a first day at work… anything that comes round yearly.", style = T.Label, color = C.Muted)
         }
 
-        FieldLabel("Birth year (optional)")
-        KeptField(yearText, { yearText = it.filter(Char::isDigit).take(4) }, "e.g. 1992",
+        FieldLabel("Month")
+        Grid(cols = 4, count = 12) { i -> Chip(monthAbbr(i + 1), month == i + 1, { month = i + 1 }, Modifier.fillMaxWidth(), tone = C.Violet) }
+
+        FieldLabel("Day")
+        Grid(cols = 7, count = maxDay) { i -> Chip("${i + 1}", day == i + 1, { day = i + 1 }, Modifier.fillMaxWidth(), tone = C.Violet) }
+        if (month == 2 && day == 29) {
+            Spacer(Modifier.height(8.dp))
+            Text("In years without a Feb 29 this is observed on Feb 28.", style = T.Label, color = C.Muted)
+        }
+
+        FieldLabel(if (anniversary) "Year it began (optional)" else "Birth year (optional)")
+        KeptField(yearText, { yearText = it.filter(Char::isDigit).take(4) }, if (anniversary) "e.g. 2015" else "e.g. 1992",
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
         if (yearInvalid) {
             Spacer(Modifier.height(6.dp))
@@ -257,7 +269,7 @@ fun BirthdayEditor(
         }
 
         FieldLabel("Start reminding me")
-        LeadPicker(lead, { lead = it }, listOf(0, 1, 3, 5, 7, 14))
+        LeadPicker(lead, { lead = it }, listOf(0, 1, 3, 5, 7, 14), C.Violet)
 
         Spacer(Modifier.height(12.dp))
         val next = Eligibility.nextOccurrence(month, day, today)
@@ -266,7 +278,10 @@ fun BirthdayEditor(
         Text(
             buildString {
                 append("Next one is ${if (n == 0) "today" else if (n == 1) "tomorrow" else "in $n days"}, ${next.shortLabel(today)}")
-                if (year != null && !yearInvalid) append(", turning ${next.year - year}")
+                if (year != null && !yearInvalid) {
+                    val n = next.year - year
+                    append(if (anniversary) ", $n ${if (n == 1) "year" else "years"}" else ", turning $n")
+                }
                 append(". ")
                 append(if (lead == 0) "You'll be reminded on the day, every year." else "You'll be reminded from ${windowStart.shortLabel(today)}, and again every year.")
             },
@@ -274,7 +289,7 @@ fun BirthdayEditor(
         )
 
         FieldLabel("Note (optional)")
-        KeptField(notes, { notes = it }, "Gift ideas, how you know them…", singleLine = false,
+        KeptField(notes, { notes = it }, if (anniversary) "Plans, gift ideas…" else "Gift ideas, how you know them…", singleLine = false,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences))
     }
 

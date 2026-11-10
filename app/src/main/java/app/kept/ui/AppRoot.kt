@@ -123,13 +123,13 @@ fun AppRoot(vm: AppViewModel) {
                                         val (json, n) = vm.birthdayJson()
                                         val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                         cm.setPrimaryClip(ClipData.newPlainText("Kept birthdays", json))
-                                        toast("Copied $n ${if (n == 1) "birthday" else "birthdays"} as JSON")
+                                        toast("Copied $n ${if (n == 1) "entry" else "entries"} as JSON")
                                     }
                                 },
                             )
                         }
                         AddButton(
-                            if (tab == 2) "Add birthday" else "Add reminder",
+                            if (tab == 2) "Add birthday or anniversary" else "Add reminder",
                             onClick = { route = if (tab == 2) "birthday/new" else "reminder/new" },
                             modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 16.dp),
                         )
@@ -170,7 +170,7 @@ fun AppRoot(vm: AppViewModel) {
                     if (id != null && existing == null && state.loaded) { LaunchedEffect(Unit) { home() } } else {
                         BirthdayEditor(
                             initial = existing, today = state.today, defaultLead = state.settings.defaultBirthdayLead,
-                            onSave = { vm.save(it); askPermissionIfNeeded(); home(); toast(if (existing == null) "Birthday added" else "Saved") },
+                            onSave = { vm.save(it); askPermissionIfNeeded(); home(); toast(if (existing == null) "${if (it.anniversary) "Anniversary" else "Birthday"} added" else "Saved") },
                             onDelete = { vm.deleteBirthday(it); home(); toast("Deleted") },
                             onBack = ::home,
                         )

@@ -18,5 +18,6 @@ fun monthFull(month: Int): String = java.time.Month.of(month).getDisplayName(Tex
 
 fun subtitleFor(item: AgendaItem, today: LocalDate): String {
     val d = item.date.shortLabel(today)
-    return if (item.kind == ItemKind.BIRTHDAY && item.turningAge != null) "$d  ·  turns ${item.turningAge}" else d
+    val note = if (item.kind == ItemKind.BIRTHDAY) app.kept.domain.Phrases.ageNote(item) else null
+    return if (note != null) "$d  ·  $note" else d
 }

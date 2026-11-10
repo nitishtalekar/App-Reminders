@@ -34,7 +34,9 @@ Resize it: ~2x2 is the compact layout, 3+ columns x 1 row the wide one, 3+ colum
 ### Rules
 - Reminder: active from `date - leadDays` until cleared; after its date it is *overdue*, never auto-removed.
 - Birthday: yearly. Relevant from `birthday - leadDays` through the birthday itself, then drops out until next year.
+- Anniversaries live on the Birthdays tab and follow the birthday rules; the optional year shows as "N years".
 - **Feb 29 birthdays are observed on Feb 28 in non-leap years.**
+- Search (reminders and birthdays/anniversaries): every word must match a name, or the start of the month (3+ letters), e.g. `alex nov`.
 - Widget/notification order: most overdue first, then nearest; reminders before birthdays on ties.
 
 ### Platform limitations

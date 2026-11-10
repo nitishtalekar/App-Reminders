@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-enum class Glyph { Plus, Check, Close, Back, Trash, Copy, Restore, Sliders, Calendar, ChevLeft, ChevRight }
+enum class Glyph { Plus, Check, Close, Back, Trash, Copy, Restore, Sliders, Calendar, ChevLeft, ChevRight, Search }
 
 /** Hand-drawn 24-unit line icons: one stroke weight, square caps - matches the flat geometric language. */
 @Composable
@@ -58,6 +58,7 @@ fun GlyphIcon(glyph: Glyph, tint: Color, modifier: Modifier = Modifier, size: Dp
                 line(4f, 11f, 20f, 11f); line(9f, 3.5f, 9f, 8f); line(15f, 3.5f, 15f, 8f)
                 dot(tint, p(9f, 15f), 1.2f * k); dot(tint, p(15f, 15f), 1.2f * k)
             }
+            Glyph.Search -> { drawCircle(tint, 6.5f * k, p(10.5f, 10.5f), style = stroke); line(15.5f, 15.5f, 20f, 20f) }
             Glyph.ChevLeft -> drawPath(Path().apply { moveTo(14f * k, 6f * k); lineTo(8f * k, 12f * k); lineTo(14f * k, 18f * k) }, tint, style = stroke)
             Glyph.ChevRight -> drawPath(Path().apply { moveTo(10f * k, 6f * k); lineTo(16f * k, 12f * k); lineTo(10f * k, 18f * k) }, tint, style = stroke)
             Glyph.Sliders -> {

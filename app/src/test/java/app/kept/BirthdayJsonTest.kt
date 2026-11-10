@@ -16,7 +16,7 @@ class BirthdayJsonTest {
             LocalDate.of(2026, 11, 4),
         )
         val o = JSONObject(json) // throws if invalid
-        assertEquals(1, o.getInt("schemaVersion"))
+        assertEquals(2, o.getInt("schemaVersion"))
         assertEquals(2, o.getInt("count"))
         val arr = o.getJSONArray("birthdays")
         assertEquals(2, arr.length())

@@ -7,18 +7,19 @@ import java.time.LocalDate
 
 /** Portable export. Built with org.json so every string is escaped and the output is always valid JSON. */
 object BirthdayJson {
-    const val SCHEMA_VERSION = 1
+    const val SCHEMA_VERSION = 2
 
     fun export(birthdays: List<Birthday>, exportedOn: LocalDate = LocalDate.now()): String {
         val list = JSONArray()
         birthdays.sortedWith(compareBy({ it.month }, { it.day }, { it.name.lowercase() })).forEach { b ->
             list.put(JSONObject().apply {
+                put("type", if (b.anniversary) "anniversary" else "birthday")
                 put("name", b.name)
                 // "--MM-DD": ISO 8601 year-less date. Always present.
                 put("date", "--%02d-%02d".format(b.month, b.day))
                 put("month", b.month)
                 put("day", b.day)
-                put("birthYear", b.birthYear ?: JSONObject.NULL)
+                put("birthYear", b.birthYear ?: JSONObject.NULL) // the start year, for anniversaries
                 put("reminderLeadDays", b.leadDays)
                 put("notes", if (b.notes.isBlank()) JSONObject.NULL else b.notes)
             })

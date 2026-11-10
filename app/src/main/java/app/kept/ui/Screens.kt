@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -148,25 +149,37 @@ fun RemindersScreen(
     onRestore: (Reminder) -> Unit,
 ) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
+    var searching by rememberSaveable { mutableStateOf(false) }
+    var query by rememberSaveable { mutableStateOf("") }
     val today = state.today
-    val active = state.reminders.filter { Eligibility.isReminderActive(it, today) }
+    val all = state.reminders.filter { Search.reminder(it, query) }
+    val active = all.filter { Eligibility.isReminderActive(it, today) }
         .map { Eligibility.reminderItem(it, today) }.sortedWith(Eligibility.agendaOrder)
-    val later = Eligibility.upcomingReminders(state.reminders, today)
+    val later = Eligibility.upcomingReminders(all, today)
     val nowMillis = System.currentTimeMillis()
     // Expired ones are hidden immediately; the database row is deleted on the next sync.
-    val cleared = state.reminders.filter { it.clearedAtMillis != null && !Eligibility.isClearedExpired(it, nowMillis) }
+    val cleared = all.filter { it.clearedAtMillis != null && !Eligibility.isClearedExpired(it, nowMillis) }
         .sortedByDescending { it.clearedAtMillis }
     val byId = state.reminders.associateBy { it.id }
+    val filtering = query.isNotBlank()
 
     Column(Modifier.fillMaxSize()) {
-        ScreenHeader("Reminders")
+        ScreenHeader("Reminders") {
+            IconAction(Glyph.Search, if (searching) "Close search" else "Search reminders", {
+                searching = !searching; if (!searching) query = ""
+            }, if (searching) C.Accent else C.Text)
+        }
+        if (searching) SearchPanel(query, { query = it }, "Search by name or month", C.Accent)
         UnderlineTabs(listOf("Active · ${active.size + later.size}", "Cleared · ${cleared.size}"), tab) { tab = it }
         if (!state.loaded) return@Column
 
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = ListBottomPadding)) {
             if (tab == 0) {
                 if (active.isEmpty() && later.isEmpty()) {
-                    item { EmptyState("Nothing pending.", "Add a reminder with a date and how many days ahead you want to hear about it.") }
+                    item {
+                        if (filtering) EmptyState("No matches.", "Nothing active matches “${query.trim()}”. Try a name, or a month like “nov”.")
+                        else EmptyState("Nothing pending.", "Add a reminder with a date and how many days ahead you want to hear about it.")
+                    }
                 }
                 items(active, key = { it.key }) { i ->
                     AgendaRow(i, subtitleFor(i, today), active = true, onClick = { onOpen(i.sourceId) },
@@ -182,7 +195,10 @@ fun RemindersScreen(
                     }
                 }
             } else {
-                if (cleared.isEmpty()) item { EmptyState("Nothing cleared yet.", "Reminders you mark done are kept here, and can be restored.") }
+                if (cleared.isEmpty()) item {
+                    if (filtering) EmptyState("No matches.", "Nothing cleared matches “${query.trim()}”.")
+                    else EmptyState("Nothing cleared yet.", "Reminders you mark done are kept here, and can be restored.")
+                }
                 items(cleared, key = { "x" + it.id }) { r ->
                     val i = Eligibility.reminderItem(r, today)
                     val left = Eligibility.clearedDaysLeft(r, nowMillis)
@@ -214,26 +230,36 @@ fun BirthdaysScreen(
     onOpen: (Long) -> Unit,
     onCopyJson: () -> Unit,
 ) {
+    var searching by rememberSaveable { mutableStateOf(false) }
+    var query by rememberSaveable { mutableStateOf("") }
     val today = state.today
-    val list = Eligibility.birthdaysByNext(state.birthdays, today)
+    val list = Eligibility.birthdaysByNext(state.birthdays.filter { Search.birthday(it, query) }, today)
     val byId = state.birthdays.associateBy { it.id }
 
     Column(Modifier.fillMaxSize()) {
         ScreenHeader("Birthdays") {
-            if (list.isNotEmpty()) TextActionWithIcon("Copy JSON", onCopyJson)
+            if (state.birthdays.isNotEmpty() && !searching) TextActionWithIcon("Copy JSON", onCopyJson)
+            IconAction(Glyph.Search, if (searching) "Close search" else "Search birthdays and anniversaries", {
+                searching = !searching; if (!searching) query = ""
+            }, if (searching) C.Violet else C.Text)
         }
+        if (searching) SearchPanel(query, { query = it }, "Search by name or month", C.Violet)
         if (!state.loaded) return@Column
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = ListBottomPadding)) {
             if (list.isEmpty()) {
-                item { EmptyState("No birthdays yet.", "Add the people you want to remember. They come back every year on their own.") }
+                item {
+                    if (query.isNotBlank()) EmptyState("No matches.", "Nothing matches “${query.trim()}”. Try a name, or a month like “nov”.")
+                    else EmptyState("Nothing here yet.", "Add birthdays and anniversaries for the people you want to remember. They come back every year on their own.")
+                }
             }
             items(list, key = { it.key }) { i ->
                 val b = byId[i.sourceId]
                 val inWindow = b != null && i.daysUntil <= b.leadDays
                 val sub = buildString {
+                    if (i.anniversary) append("Anniversary  ·  ")
                     append("${monthAbbr(i.date.monthValue)} ${i.date.dayOfMonth}")
                     if (b != null && b.month == 2 && b.day == 29 && i.date.dayOfMonth == 28) append(" (Feb 29)")
-                    i.turningAge?.let { append("  ·  turns $it") }
+                    Phrases.ageNote(i)?.let { append("  ·  $it") }
                 }
                 AgendaRow(i, sub, active = inWindow, onClick = { onOpen(i.sourceId) })
             }
@@ -245,7 +271,7 @@ fun BirthdaysScreen(
 private fun TextActionWithIcon(label: String, onClick: () -> Unit) {
     Row(
         Modifier.heightIn(min = 48.dp)
-            .clickable(role = Role.Button, onClickLabel = "Copy all birthdays as JSON", onClick = onClick)
+            .clickable(role = Role.Button, onClickLabel = "Copy all birthdays and anniversaries as JSON", onClick = onClick)
             .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

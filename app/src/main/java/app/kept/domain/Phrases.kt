@@ -13,11 +13,21 @@ object Phrases {
             item.daysUntil == 1 -> "Due tomorrow"
             else -> "Due in ${item.daysUntil} days"
         }
-        ItemKind.BIRTHDAY -> when (item.daysUntil) {
-            0 -> "Birthday today"
-            1 -> "Birthday tomorrow"
-            else -> "Birthday in ${item.daysUntil} days"
+        ItemKind.BIRTHDAY -> {
+            val w = noun(item.anniversary)
+            when (item.daysUntil) {
+                0 -> "$w today"
+                1 -> "$w tomorrow"
+                else -> "$w in ${item.daysUntil} days"
+            }
         }
+    }
+
+    fun noun(anniversary: Boolean) = if (anniversary) "Anniversary" else "Birthday"
+
+    /** "turns 34" for a birthday, "5 years" for an anniversary; null when no year is known. */
+    fun ageNote(item: AgendaItem): String? = item.turningAge?.let { n ->
+        if (item.anniversary) (if (n == 1) "1 year" else "$n years") else "turns $n"
     }
 
     /** Short form used where the context already says what it is: "Today", "In 3 days", "2 days late". */

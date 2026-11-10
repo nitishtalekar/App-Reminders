@@ -73,6 +73,7 @@ object Eligibility {
             daysUntil = daysBetween(today, next),
             notes = birthday.notes,
             turningAge = birthday.birthYear?.let { next.year - it },
+            anniversary = birthday.anniversary,
         )
     }
 
@@ -101,7 +102,7 @@ object Eligibility {
             if (java.time.YearMonth.from(d) == month) {
                 out.getOrPut(d) { mutableListOf() } += AgendaItem(
                     kind = ItemKind.BIRTHDAY, sourceId = b.id, title = b.name, date = d,
-                    daysUntil = daysBetween(today, d), notes = b.notes, turningAge = b.birthYear?.let { d.year - it },
+                    daysUntil = daysBetween(today, d), notes = b.notes, turningAge = b.birthYear?.let { d.year - it }, anniversary = b.anniversary,
                 )
             }
         }

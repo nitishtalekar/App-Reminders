@@ -35,6 +35,12 @@ import androidx.compose.ui.focus.onFocusChanged
 import app.kept.domain.AgendaItem
 import app.kept.domain.ItemKind
 import androidx.compose.material3.Text
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import kotlin.math.abs
@@ -47,10 +53,10 @@ fun Hairline(modifier: Modifier = Modifier) =
 
 /** Shape language: reminders are squares, birthdays are circles. Used in the app, widget and notifications. */
 @Composable
-fun Marker(kind: ItemKind, color: Color, size: Dp = 10.dp) {
-    Box(
-        Modifier.size(size).background(color, if (kind == ItemKind.BIRTHDAY) CircleShape else RoundedCornerShape(size / 3.2f))
-    )
+fun Marker(kind: ItemKind, color: Color, size: Dp = 10.dp, ring: Boolean = false) {
+    // Anniversaries are a hollow circle: same family as the birthday dot, but tellable apart at a glance.
+    if (ring) Box(Modifier.size(size).border(BorderStroke(size / 5f, color), CircleShape))
+    else Box(Modifier.size(size).background(color, if (kind == ItemKind.BIRTHDAY) CircleShape else RoundedCornerShape(size / 3.2f)))
 }
 
 @Composable
@@ -116,7 +122,7 @@ fun KeptField(
 }
 
 @Composable
-fun Chip(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun Chip(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier, tone: Color = C.Accent) {
     // Slim 34dp pill, but the tappable area stays 44dp tall so it is still easy to hit.
     Box(
         modifier.heightIn(min = 44.dp).clickable(role = Role.RadioButton, onClick = onClick),
@@ -125,8 +131,8 @@ fun Chip(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifi
         Box(
             Modifier.height(34.dp).defaultMinSize(minWidth = 40.dp)
                 .clip(CircleShape)
-                .background(if (selected) C.Accent else C.Surface)
-                .border(BorderStroke(1.dp, if (selected) C.Accent else C.Line), CircleShape)
+                .background(if (selected) tone else C.Surface)
+                .border(BorderStroke(1.dp, if (selected) tone else C.Line), CircleShape)
                 .padding(horizontal = 14.dp),
             contentAlignment = Alignment.Center,
         ) {
@@ -172,10 +178,10 @@ private fun StepButton(symbol: String, description: String, enabled: Boolean, on
 }
 
 @Composable
-fun PrimaryButton(text: String, enabled: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun PrimaryButton(text: String, enabled: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier, tone: Color = C.Accent) {
     Box(
         modifier.fillMaxWidth().height(56.dp).clip(CircleShape)
-            .background(if (enabled) C.Accent else C.Raised)
+            .background(if (enabled) tone else C.Raised)
             .then(if (enabled) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier),
         contentAlignment = Alignment.Center,
     ) { Text(text, style = T.Heading, color = if (enabled) C.Bg else C.Muted) }
@@ -247,7 +253,7 @@ fun AgendaRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (leading != null) { leading(); Spacer(Modifier.width(14.dp)) } else {
-            Box(Modifier.width(22.dp), contentAlignment = Alignment.CenterStart) { Marker(item.kind, tone) }
+            Box(Modifier.width(22.dp), contentAlignment = Alignment.CenterStart) { Marker(item.kind, tone, ring = item.anniversary) }
         }
         Column(Modifier.weight(1f)) {
             Text(item.title, style = T.Heading, color = if (active) C.Text else C.Muted, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -285,4 +291,49 @@ fun AddButton(description: String, onClick: () -> Unit, modifier: Modifier = Mod
             .semantics { contentDescription = description },
         contentAlignment = Alignment.Center,
     ) { GlyphIcon(Glyph.Plus, C.Bg, size = 28.dp) }
+}
+
+/**
+ * Search box plus a row of month shortcuts. Typing filters by name or month ("alex", "nov", "alex nov");
+ * tapping a month fills the box with it, tapping it again clears it.
+ */
+@Composable
+fun SearchPanel(query: String, onQuery: (String) -> Unit, placeholder: String, tone: Color) {
+    val focus = remember { FocusRequester() }
+    val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
+    LaunchedEffect(Unit) { focus.requestFocus() }
+    Column(Modifier.padding(top = 4.dp, bottom = 4.dp)) {
+        BasicTextField(
+            value = query,
+            onValueChange = onQuery,
+            textStyle = T.Body.copy(color = C.Text),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            keyboardActions = androidx.compose.foundation.text.KeyboardActions(onSearch = { keyboard?.hide() }),
+            cursorBrush = SolidColor(tone),
+            modifier = Modifier.padding(horizontal = ScreenPadding).fillMaxWidth().heightIn(min = 52.dp)
+                .background(C.Surface, CircleShape).border(BorderStroke(1.dp, C.Line), CircleShape)
+                .semantics { contentDescription = placeholder }
+                .focusRequester(focus),
+            decorationBox = { inner ->
+                Row(Modifier.padding(start = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    GlyphIcon(Glyph.Search, C.Muted, size = 20.dp)
+                    Spacer(Modifier.width(10.dp))
+                    Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+                        if (query.isEmpty()) Text(placeholder, style = T.Body, color = C.Muted, maxLines = 1)
+                        inner()
+                    }
+                    if (query.isNotEmpty()) IconAction(Glyph.Close, "Clear search", { onQuery("") }, C.Muted)
+                    else Spacer(Modifier.width(16.dp))
+                }
+            },
+        )
+        LazyRow(contentPadding = PaddingValues(horizontal = ScreenPadding), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items((1..12).toList()) { m ->
+                val name = monthFull(m)
+                val on = query.trim().equals(name, ignoreCase = true)
+                Chip(monthAbbr(m), on, { onQuery(if (on) "" else name) }, tone = tone)
+            }
+        }
+    }
 }

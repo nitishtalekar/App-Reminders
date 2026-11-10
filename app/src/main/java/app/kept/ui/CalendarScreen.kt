@@ -172,7 +172,7 @@ private fun CalendarRow(item: AgendaItem, today: LocalDate, onClick: () -> Unit)
     val tone = toneOf(item)
     val sub = when (item.kind) {
         ItemKind.REMINDER -> if (item.date.isBefore(today)) Phrases.status(item) else "Reminder due"
-        ItemKind.BIRTHDAY -> if (item.turningAge != null) "Birthday  ·  turns ${item.turningAge}" else "Birthday"
+        ItemKind.BIRTHDAY -> Phrases.noun(item.anniversary) + (Phrases.ageNote(item)?.let { "  ·  $it" } ?: "")
     }
     Row(
         Modifier.padding(horizontal = 12.dp, vertical = 2.dp).fillMaxWidth().clip(RoundedCornerShape(20.dp))
@@ -180,7 +180,7 @@ private fun CalendarRow(item: AgendaItem, today: LocalDate, onClick: () -> Unit)
             .semantics(mergeDescendants = true) {},
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.width(22.dp), contentAlignment = Alignment.CenterStart) { Marker(item.kind, tone) }
+        Box(Modifier.width(22.dp), contentAlignment = Alignment.CenterStart) { Marker(item.kind, tone, ring = item.anniversary) }
         Column(Modifier.weight(1f)) {
             Text(item.title, style = T.Heading, color = C.Text, maxLines = 2)
             Text(sub, style = T.Label, color = if (item.isOverdue && item.kind == ItemKind.REMINDER) C.Danger else C.Muted)

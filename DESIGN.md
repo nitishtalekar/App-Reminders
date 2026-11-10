@@ -18,7 +18,7 @@
 Space Grotesk (variable, OFL) in the app. Widget uses system sans in its heaviest weight (`sans-serif-black`) because RemoteViews cannot load custom fonts.
 
 ## Shapes
-Rounded squares = reminders, circles = birthdays. Pill buttons, chips, tabs and a floating pill tab bar; circular add button; 20dp soft fields and rows. No hairline lists.
+Rounded squares = reminders, filled circles = birthdays, hollow rings = anniversaries (same violet, same tab). Pill buttons, chips, tabs and a floating pill tab bar; circular add button; 20dp soft fields and rows. No hairline lists.
 
 ## Pattern
 `ui/Pattern.kt`: flat Truchet quarter-arc tiling at ~6% alpha behind the whole app. Widget: concentric arcs (bottom-right) on reminders, overlapping dots (top-right, violet) on birthdays.

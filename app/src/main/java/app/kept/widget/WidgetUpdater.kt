@@ -248,7 +248,7 @@ object WidgetUpdater {
         if (size != WidgetSize.COMPACT) {
             val d = item.date.format(dateFmt)
             RemoteViews(pkg, R.layout.wi_date).also {
-                it.setTextViewText(R.id.wi_text, if (isBirthday && item.turningAge != null) "$d  ·  turns ${item.turningAge}" else d)
+                it.setTextViewText(R.id.wi_text, Phrases.ageNote(item)?.takeIf { isBirthday }?.let { "$d  ·  $it" } ?: d)
                 it.setTextViewTextSize(R.id.wi_text, sp, if (size == WidgetSize.LARGE) 15f else 13f)
                 it.setTextColor(R.id.wi_text, theme.muted)
                 rv.addView(R.id.date_flipper, it)

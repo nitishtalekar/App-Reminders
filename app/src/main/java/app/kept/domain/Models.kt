@@ -12,7 +12,7 @@ data class Reminder(
     val clearedAtMillis: Long? = null,
 )
 
-/** A yearly recurring birthday. [birthYear] is optional. */
+/** A yearly recurring birthday or anniversary. [birthYear] (the start year for anniversaries) is optional. */
 data class Birthday(
     val id: Long = 0,
     val name: String,
@@ -21,6 +21,8 @@ data class Birthday(
     val birthYear: Int? = null,
     val leadDays: Int,
     val notes: String = "",
+    /** The tab is still "Birthdays"; an entry can also be an anniversary. */
+    val anniversary: Boolean = false,
 )
 
 enum class ItemKind { REMINDER, BIRTHDAY }
@@ -41,6 +43,8 @@ data class AgendaItem(
     val notes: String = "",
     /** Birthdays only: the age being reached on [date], when the birth year is known. */
     val turningAge: Int? = null,
+    /** Birthdays tab only: this yearly entry is an anniversary. [turningAge] then means "years". */
+    val anniversary: Boolean = false,
 ) {
     val isOverdue: Boolean get() = daysUntil < 0
     val isToday: Boolean get() = daysUntil == 0
